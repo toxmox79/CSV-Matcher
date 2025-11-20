@@ -1,0 +1,2329 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Universal CSV Matcher & Merger</title>
+
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#93c01f">
+  <meta name="description" content="CSV & DB mischen, matchen und exportieren (CSV/SQL)">
+
+  <!-- iOS Specific Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="CSV Matcher">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+  <script src="db-manager.js"></script>
+  <script src="db-ui.js"></script>
+  <style>
+    :root {
+      --accent: #93c01f;
+      --accent-700: #6e8f12;
+      --accent-100: #eaf5d1;
+      --accent-50: #f6faea;
+      --bg: #f5f7fa;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --shadow: 0 10px 30px rgba(0, 0, 0, .06);
+      --radius: 14px
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box
+    }
+
+    body {
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans";
+      color: var(--text);
+      background: var(--bg);
+      padding: 24px
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden
+    }
+
+    header {
+      background: linear-gradient(180deg, var(--card), #fcfdfc);
+      border-bottom: 1px solid var(--line);
+      padding: 28px 28px 22px;
+      position: relative
+    }
+
+    header::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 4px;
+      background: var(--accent)
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 750;
+      margin-bottom: 6px
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 14px
+    }
+
+    .progress-bar {
+      display: flex;
+      gap: 12px;
+      padding: 18px 24px;
+      background: #fcfdfc;
+      border-bottom: 1px solid var(--line)
+    }
+
+    .progress-step {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-weight: 600
+    }
+
+    .progress-bullet {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #eef2f7;
+      color: #64748b;
+      font-size: 13px;
+      font-weight: 700;
+      border: 1px solid var(--line)
+    }
+
+    .progress-step.active {
+      color: #111827
+    }
+
+    .progress-step.active .progress-bullet {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent)
+    }
+
+    .content {
+      padding: 28px
+    }
+
+    .step {
+      display: none
+    }
+
+    .step.active {
+      display: block
+    }
+
+    .form-group {
+      margin-bottom: 18px
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 650;
+      color: #374151
+    }
+
+    input[type="number"],
+    input[type="date"],
+    input[type="text"],
+    input[type="password"],
+    select {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1.6px solid var(--line);
+      border-radius: 10px;
+      font-size: 15px;
+      background: #fff;
+      transition: border-color .2s, box-shadow .2s
+    }
+
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-100)
+    }
+
+    input[type="date"] {
+      font-family: inherit;
+      padding: 10px 12px;
+    }
+
+    .csv-slot {
+      background: #fff;
+      border: 1.5px dashed #dfe3e8;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px
+    }
+
+    .drop-zone {
+      border: 2px dashed #d5dae0;
+      border-radius: 12px;
+      padding: 26px;
+      text-align: center;
+      cursor: pointer;
+      background: linear-gradient(180deg, #fff, #fbfbfb)
+    }
+
+    .file-list {
+      margin-top: 10px
+    }
+
+    .file-item {
+      background: #fff;
+      padding: 10px 12px;
+      margin: 6px 0;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid var(--line)
+    }
+
+    .file-item button {
+      background: #ef4444;
+      color: #fff;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px
+    }
+
+    .btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer
+    }
+
+    .btn-secondary {
+      background: #6b7280
+    }
+
+    .btn-success {
+      background: var(--accent-700)
+    }
+
+    .btn-group {
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap
+    }
+
+    .preview-table {
+      overflow-x: auto;
+      overflow-y: auto;
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      max-height: 70vh;
+      -webkit-overflow-scrolling: touch;
+      width: 100%;
+    }
+
+    table {
+      border-collapse: collapse;
+      font-size: 14px;
+      table-layout: auto;
+      width: auto;
+    }
+
+    th {
+      background: var(--accent);
+      color: #fff;
+      padding: 12px 16px;
+      text-align: left;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      white-space: nowrap;
+      min-width: 120px;
+      font-weight: 600;
+    }
+
+    td {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--line);
+      white-space: nowrap;
+      min-width: 120px;
+    }
+
+    .alert {
+      padding: 12px 14px;
+      border-radius: 10px;
+      margin-bottom: 16px;
+      border: 1px solid transparent;
+      display: flex;
+      gap: 8px;
+      align-items: center
+    }
+
+    .alert-info {
+      background: #eef6ff;
+      color: #0c4a6e;
+      border-color: #dbeafe
+    }
+
+    .alert-success {
+      background: var(--accent-50);
+      color: #2f3b06;
+      border-color: #eaf5d1
+    }
+
+    .alert-warning {
+      background: #fff7ed;
+      color: #7c2d12;
+      border-color: #ffedd5
+    }
+
+    .alert-error {
+      background: #fef2f2;
+      color: #7f1d1d;
+      border-color: #fecaca
+    }
+
+    .config-section {
+      background: #fcfdfc;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      border: 1px solid var(--line)
+    }
+
+    .inline-group {
+      display: flex;
+      gap: 10px;
+      align-items: end;
+      margin-bottom: 10px
+    }
+
+    .inline-group>div {
+      flex: 1
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      background: #fff;
+      border-radius: 10px;
+      margin: 6px 0;
+      border: 1px solid var(--line)
+    }
+
+    .row-count {
+      background: var(--accent);
+      color: #fff;
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      display: inline-block;
+      margin-top: 10px;
+      font-weight: 700
+    }
+
+    .accordion-header {
+      cursor: pointer;
+      padding: 12px;
+      background: #f0f0f0;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+    }
+
+    .accordion-header:after {
+      content: '+';
+      font-size: 20px;
+    }
+
+    .accordion-header.active:after {
+      content: '-';
+    }
+
+    .accordion-content {
+      display: none;
+      padding: 14px;
+      background: #fafafa;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    .condition-group {
+      border: 1px solid #ddd;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      background: #fff;
+    }
+
+    .condition-group .btn-secondary {
+      margin-top: 8px;
+      font-size: 13px;
+      padding: 6px 10px;
+    }
+
+    .logic-group {
+      padding: 6px 0 10px 0;
+      margin: 0 0 8px 0;
+      font-size: 14px;
+      color: #555;
+      background: #f9f9f9;
+      border-radius: 6px;
+      padding: 8px;
+    }
+
+    .diagnosis-cell {
+      font-size: 12px;
+      padding: 4px 6px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    .diag-date-ok {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .diag-date-fail {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .diag-number-ok {
+      background: #e0f2fe;
+      color: #075985;
+    }
+
+    .diag-number-fail {
+      background: #fef9c3;
+      color: #854d0e;
+    }
+
+    /* ============================================ */
+    /* TAB NAVIGATION */
+    /* ============================================ */
+    .tab-navigation {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .tab-btn {
+      padding: 10px 20px;
+      border: none;
+      background: #e5e7eb;
+      color: #6b7280;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn:hover {
+      background: #d1d5db;
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* ============================================ */
+    /* DATABASE MANAGEMENT UI */
+    /* ============================================ */
+    .db-container {
+      padding: 24px;
+    }
+
+    .db-sub-tabs {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      border-bottom: 2px solid var(--line);
+      padding-bottom: 0;
+    }
+
+    .db-sub-tab {
+      padding: 12px 20px;
+      border: none;
+      background: none;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+      margin-bottom: -2px;
+    }
+
+    .db-sub-tab:hover {
+      color: var(--text);
+    }
+
+    .db-sub-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    .db-sub-content {
+      display: none;
+    }
+
+    .db-sub-content.active {
+      display: block;
+    }
+
+    /* Database Table List */
+    .db-table-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .db-table-item {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: box-shadow 0.2s;
+    }
+
+    .db-table-item:hover {
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .db-table-info {
+      flex: 1;
+    }
+
+    .db-table-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .db-table-stats {
+      font-size: 13px;
+      color: var(--muted);
+      display: flex;
+      gap: 16px;
+    }
+
+    .db-table-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .db-action-btn {
+      padding: 8px 14px;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .db-action-btn:hover {
+      background: var(--bg);
+    }
+
+    .db-action-btn.danger {
+      color: #dc2626;
+      border-color: #fecaca;
+    }
+
+    .db-action-btn.danger:hover {
+      background: #fef2f2;
+    }
+
+    .db-action-btn.primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .db-action-btn.primary:hover {
+      background: var(--accent-700);
+    }
+
+    /* Database Forms */
+    .db-form {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .db-form-group {
+      margin-bottom: 16px;
+    }
+
+    .db-form-label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .db-form-input {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1.6px solid var(--line);
+      border-radius: 10px;
+      font-size: 15px;
+    }
+
+    .db-form-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-100);
+    }
+
+    /* Database Table View (Pagination) */
+    .db-table-view {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 16px;
+    }
+
+    .db-pagination {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+    }
+
+    .db-pagination-info {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .db-pagination-controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .db-pagination-btn {
+      padding: 6px 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .db-pagination-btn:hover:not(:disabled) {
+      background: var(--bg);
+    }
+
+    .db-pagination-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Backup List */
+    .backup-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .backup-item {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .backup-info {
+      flex: 1;
+    }
+
+    .backup-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .backup-details {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .backup-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .empty-state-text {
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .empty-state-subtext {
+      font-size: 14px;
+      opacity: 0.7;
+    }
+
+    /* Search/Filter */
+    .db-search {
+      margin-bottom: 20px;
+    }
+
+    .db-search-input {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1.6px solid var(--line);
+      border-radius: 10px;
+      font-size: 15px;
+    }
+
+    .db-search-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-100);
+    }
+
+    /* Status Icons */
+    .status-icon {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+
+    .status-icon.synced {
+      background: #10b981;
+    }
+
+    .status-icon.pending {
+      background: #f59e0b;
+    }
+
+    .status-icon.error {
+      background: #ef4444;
+    }
+
+    /* Progress Bar for large operations */
+    .db-progress {
+      margin-top: 16px;
+    }
+
+    .db-progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #e5e7eb;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .db-progress-fill {
+      height: 100%;
+      background: var(--accent);
+      transition: width 0.3s;
+    }
+
+    .db-progress-text {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 8px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>Universal CSV Matcher & Merger</h1>
+      <p class="subtitle">CSV & DB mischen, matchen und exportieren (CSV/SQL)</p>
+      <div class="tab-navigation">
+        <button class="tab-btn active" onclick="switchMainTab('matcher')">CSV Matcher</button>
+        <button class="tab-btn" onclick="switchMainTab('database')">Datenbank-Verwaltung</button>
+      </div>
+    </header>
+
+    <!-- CSV Matcher Tab (existing content) -->
+    <div id="matcherTab" class="tab-content active">
+      <div class="progress-bar" id="progressBar">
+        <div class="progress-step active">
+          <div class="progress-bullet">1</div>CSV-/DB-Anzahl
+        </div>
+        <div class="progress-step">
+          <div class="progress-bullet">2</div>Quellen & Konfiguration
+        </div>
+        <div class="progress-step">
+          <div class="progress-bullet">3</div>Spaltenabgleich
+        </div>
+        <div class="progress-step">
+          <div class="progress-bullet">4</div>Export-Konfiguration
+        </div>
+      </div>
+
+      <div class="content">
+        <div id="step1" class="step active">
+          <h2 style="margin-bottom:10px">Schritt 1: Anzahl der Quellen</h2>
+          <div class="alert alert-info">Wähle, wie viele Quellen (CSV oder DB) du zusammenführen möchtest (1–10).</div>
+          <div class="form-group">
+            <label for="sourceCount">Anzahl der Quellen:</label>
+            <select id="sourceCount" onchange="setupCSVSlots()">
+              <option value="1">1</option>
+              <option value="2" selected>2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+            </select>
+          </div>
+          <div class="btn-group">
+            <button class="btn" onclick="setupCSVSlots(); goToStep(2)">Weiter</button>
+          </div>
+        </div>
+
+        <div id="step2" class="step">
+          <h2 style="margin-bottom:10px">Schritt 2: Quellen laden & konfigurieren</h2>
+          <div class="alert alert-info">Lade deine CSV-Dateien hoch oder verbinde dich mit einer Datenbank.</div>
+          <div id="csvSlots"></div>
+          <div class="btn-group">
+            <button class="btn btn-secondary" onclick="goToStep(1)">Zurück</button>
+            <button class="btn" onclick="goToStep(3)">Weiter</button>
+          </div>
+        </div>
+
+        <div id="step3" class="step">
+          <h2 style="margin-bottom:10px">Schritt 3: Spaltenabgleich konfigurieren</h2>
+          <div class="alert alert-info">Wähle die Abgleichspalten für jede Quelle.</div>
+          <div id="matchConfig"></div>
+          <div id="matchPreview"></div>
+          <div class="btn-group">
+            <button class="btn btn-secondary" onclick="goToStep(2)">Zurück</button>
+            <button class="btn" onclick="goToStep(4)">Weiter</button>
+          </div>
+        </div>
+
+        <div id="step4" class="step">
+          <h2 style="margin-bottom:10px">Schritt 4: Export-Konfiguration</h2>
+
+          <div class="config-section">
+            <h3>Basis-Quelle auswählen</h3>
+            <div class="form-group">
+              <label for="baseCSV">Basis (bestimmt die Zeilenanzahl):</label>
+              <select id="baseCSV" onchange="updateExportPreview()"></select>
+            </div>
+          </div>
+
+          <div class="config-section">
+            <div class="accordion-header" onclick="toggleAccordion(this)">Spalten für Export auswählen</div>
+            <div class="accordion-content" id="columnSelection" style="display:none;"></div>
+          </div>
+
+          <div class="config-section">
+            <div class="accordion-header" onclick="toggleAccordion(this)">Bedingte Spalten hinzufügen</div>
+            <div class="accordion-content" style="display:none;">
+              <p class="subtitle" style="margin-bottom:12px">Füge Spalten hinzu, deren Wert von Bedingungen abhängt.</p>
+              <button class="btn btn-success" onclick="addConditionalColumn()">+ Neue bedingte Spalte</button>
+              <div id="conditionalColumns"></div>
+            </div>
+          </div>
+
+          <div class="config-section">
+            <h3>Vorschau der Export-Tabelle</h3>
+            <div id="exportPreview"></div>
+          </div>
+
+          <div class="btn-group">
+            <button class="btn btn-secondary" onclick="goToStep(3)">Zurück</button>
+            <div style="display:flex; gap:8px; flex-wrap:wrap">
+              <button class="btn btn-success" onclick="exportCSV()">CSV exportieren</button>
+              <button class="btn" onclick="exportSQL()">SQL exportieren</button>
+              <button class="btn btn-success" onclick="saveToDatabase()">In Datenbank speichern</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Database Management Tab (new) -->
+    <div id="databaseTab" class="tab-content">
+      <div class="db-container">
+        <h2 style="margin-bottom:20px">Datenbank-Verwaltung</h2>
+
+        <!-- Sub-Tabs -->
+        <div class="db-sub-tabs">
+          <button class="db-sub-tab active" onclick="switchDBTab('overview')">Übersicht</button>
+          <button class="db-sub-tab" onclick="switchDBTab('manage')">Tabelle verwalten</button>
+          <button class="db-sub-tab" onclick="switchDBTab('backups')">Backups</button>
+        </div>
+
+        <!-- Overview Tab -->
+        <div id="dbOverview" class="db-sub-content active">
+          <div class="db-search">
+            <input type="text" class="db-search-input" id="tableSearch" placeholder="Tabellen durchsuchen..."
+              onkeyup="filterTables()">
+          </div>
+
+          <button class="btn btn-success" onclick="showCreateTableForm()" style="margin-bottom:16px">+ Neue Tabelle
+            erstellen</button>
+
+          <div id="tableList" class="db-table-list">
+            <!-- Tables will be populated here -->
+          </div>
+
+          <div id="emptyState" class="empty-state" style="display:none">
+            <div class="empty-state-icon">📊</div>
+            <div class="empty-state-text">Keine Tabellen vorhanden</div>
+            <div class="empty-state-subtext">Erstelle deine erste Tabelle, um loszulegen</div>
+          </div>
+        </div>
+
+        <!-- Manage Table Tab -->
+        <div id="dbManage" class="db-sub-content">
+          <div id="createTableForm" style="display:none">
+            <h3 style="margin-bottom:16px">Neue Tabelle erstellen</h3>
+            <div class="db-form">
+              <div class="db-form-group">
+                <label class="db-form-label">Tabellenname</label>
+                <input type="text" class="db-form-input" id="newTableName" placeholder="z.B. Kundendaten">
+              </div>
+
+              <div class="db-form-group">
+                <label class="db-form-label">CSV-Datei(en) hochladen (optional)</label>
+                <input type="file" accept=".csv" id="dbCSVUpload" multiple onchange="handleDBCSVUpload(event)">
+                <p class="subtitle" style="margin-top:8px">Du kannst mehrere CSV-Dateien auswählen</p>
+              </div>
+
+              <!-- CSV Options (shown after file selection) -->
+              <div id="csvOptions" style="display:none">
+                <div class="db-form-group">
+                  <label class="db-form-label">Trennzeichen</label>
+                  <select class="db-form-input" id="csvDelimiter" onchange="updateCSVPreview()">
+                    <option value="," selected>Komma (,)</option>
+                    <option value=";">Semikolon (;)</option>
+                    <option value="\t">Tab</option>
+                    <option value="|">Pipe (|)</option>
+                  </select>
+                </div>
+
+                <div class="db-form-group">
+                  <label class="db-form-label">Encoding</label>
+                  <select class="db-form-input" id="csvEncoding" onchange="updateCSVPreview()">
+                    <option value="UTF-8" selected>UTF-8</option>
+                    <option value="ISO-8859-1">ISO-8859-1 (Latin-1)</option>
+                    <option value="Windows-1252">Windows-1252</option>
+                  </select>
+                </div>
+
+                <div class="db-form-group">
+                  <label class="db-form-label">Spaltenüberschrift in Zeile</label>
+                  <input type="number" class="db-form-input" id="csvHeaderRow" value="1" min="1"
+                    onchange="updateCSVPreview()">
+                  <p class="subtitle" style="margin-top:8px">Zeile, die die Spaltenüberschriften enthält (1 = erste
+                    Zeile)</p>
+                </div>
+
+                <!-- Preview -->
+                <div class="db-form-group">
+                  <label class="db-form-label">Vorschau</label>
+                  <div id="csvPreviewContainer" class="preview-table" style="max-height:300px">
+                    <!-- Preview will be shown here -->
+                  </div>
+                  <p class="subtitle" style="margin-top:8px" id="csvPreviewInfo">Zeige erste 10 Zeilen</p>
+                </div>
+              </div>
+
+              <div class="btn-group">
+                <button class="btn btn-secondary" onclick="cancelCreateTable()">Abbrechen</button>
+                <button class="btn btn-success" onclick="createNewTable()">Tabelle erstellen</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="editTableView" style="display:none">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+              <h3 id="editTableTitle">Tabelle bearbeiten</h3>
+              <button class="btn btn-secondary" onclick="closeEditTable()">Zurück zur Übersicht</button>
+            </div>
+
+            <div class="db-form" style="margin-bottom:16px">
+              <div class="db-form-group">
+                <label class="db-form-label">CSV-Datei(en) hinzufügen</label>
+                <input type="file" accept=".csv" id="addCSVToTable" multiple onchange="handleAddCSVToTable(event)">
+                <p class="subtitle" style="margin-top:8px">Du kannst mehrere CSV-Dateien auswählen</p>
+              </div>
+
+              <!-- CSV Options for Add (shown after file selection) -->
+              <div id="addCSVOptions" style="display:none">
+                <div class="db-form-group">
+                  <label class="db-form-label">Trennzeichen</label>
+                  <select class="db-form-input" id="addCSVDelimiter" onchange="updateAddCSVPreview()">
+                    <option value="," selected>Komma (,)</option>
+                    <option value=";">Semikolon (;)</option>
+                    <option value="\t">Tab</option>
+                    <option value="|">Pipe (|)</option>
+                  </select>
+                </div>
+
+                <div class="db-form-group">
+                  <label class="db-form-label">Encoding</label>
+                  <select class="db-form-input" id="addCSVEncoding" onchange="updateAddCSVPreview()">
+                    <option value="UTF-8" selected>UTF-8</option>
+                    <option value="ISO-8859-1">ISO-8859-1 (Latin-1)</option>
+                    <option value="Windows-1252">Windows-1252</option>
+                  </select>
+                </div>
+
+                <div class="db-form-group">
+                  <label class="db-form-label">Spaltenüberschrift in Zeile</label>
+                  <input type="number" class="db-form-input" id="addCSVHeaderRow" value="1" min="1"
+                    onchange="updateAddCSVPreview()">
+                  <p class="subtitle" style="margin-top:8px">Zeile, die die Spaltenüberschriften enthält (1 = erste
+                    Zeile)</p>
+                </div>
+
+                <!-- Preview -->
+                <div class="db-form-group">
+                  <label class="db-form-label">Vorschau</label>
+                  <div id="addCSVPreviewContainer" class="preview-table" style="max-height:300px">
+                    <!-- Preview will be shown here -->
+                  </div>
+                  <p class="subtitle" style="margin-top:8px" id="addCSVPreviewInfo">Zeige erste 10 Zeilen</p>
+                </div>
+
+                <button class="btn btn-success" onclick="confirmAddCSVToTable()">Daten hinzufügen</button>
+              </div>
+            </div>
+
+            <div class="db-table-view">
+              <div id="tableDataView">
+                <!-- Table data will be shown here -->
+              </div>
+
+              <div class="db-pagination">
+                <div class="db-pagination-info" id="paginationInfo">Zeige 0-0 von 0 Zeilen</div>
+                <div class="db-pagination-controls">
+                  <button class="db-pagination-btn" onclick="previousPage()" id="prevPageBtn">← Zurück</button>
+                  <button class="db-pagination-btn" onclick="nextPage()" id="nextPageBtn">Weiter →</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="manageEmptyState" class="empty-state">
+            <div class="empty-state-icon">📝</div>
+            <div class="empty-state-text">Wähle eine Tabelle aus der Übersicht</div>
+            <div class="empty-state-subtext">oder erstelle eine neue Tabelle</div>
+          </div>
+        </div>
+
+        <!-- Backups Tab -->
+        <div id="dbBackups" class="db-sub-content">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <h3>Backup-Verwaltung</h3>
+            <button class="btn btn-success" onclick="createManualBackup()">+ Backup erstellen</button>
+          </div>
+
+          <div id="backupList" class="backup-list">
+            <!-- Backups will be populated here -->
+          </div>
+
+          <div id="backupEmptyState" class="empty-state" style="display:none">
+            <div class="empty-state-icon">💾</div>
+            <div class="empty-state-text">Keine Backups vorhanden</div>
+            <div class="empty-state-subtext">Erstelle ein Backup, um deine Daten zu sichern</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // === 1. GLOBALE VARIABLEN ===
+    var csvData = [];
+    var currentStep = 1;
+    var conditionalColumnCounter = 0;
+
+    // === 2. HILFSFUNKTIONEN ===
+    function showAlert(msg, type) {
+      var alerts = document.querySelectorAll('.alert');
+      for (var i = 0; i < alerts.length; i++) { if (!alerts[i].classList.contains('alert-info')) alerts[i].remove(); }
+      var el = document.createElement('div'); el.className = 'alert alert-' + type; el.innerHTML = msg;
+      var active = document.querySelector('.step.active'); active.insertBefore(el, active.firstChild);
+      setTimeout(function () { el.remove(); }, 4500);
+    }
+
+    function setProgress(step) {
+      var steps = document.querySelectorAll('.progress-step');
+      for (var i = 0; i < steps.length; i++) {
+        steps[i].classList.toggle('active', i === step - 1);
+      }
+    }
+
+    function goToStep(step) {
+      if (step === 3 && !validateStep2()) return;
+      if (step === 4 && !validateStep3()) return;
+      var s = document.querySelectorAll('.step');
+      for (var i = 0; i < s.length; i++) { s[i].classList.remove('active'); }
+      document.getElementById('step' + step).classList.add('active');
+      currentStep = step; setProgress(step);
+      if (step === 3) setupMatchConfig();
+      else if (step === 4) setupExportConfig();
+    }
+
+    // === 3. INITIALISIERUNG ===
+    function setupCSVSlots() {
+      var count = parseInt(document.getElementById('sourceCount').value, 10);
+      if (count < 1 || count > 10) { showAlert('Bitte 1–10 wählen.', 'warning'); return; }
+
+      // Preserve existing data if possible
+      var oldData = csvData || [];
+      csvData = [];
+
+      for (var c = 0; c < count; c++) {
+        if (c < oldData.length) {
+          csvData.push(oldData[c]);
+        } else {
+          csvData.push({ source: 'csv', files: [], parsedData: null, delimiter: ';', headerRow: 0, dateColumns: [], dbTableId: null });
+        }
+      }
+
+      var slots = document.getElementById('csvSlots'); slots.innerHTML = '';
+      for (var i = 0; i < count; i++) {
+        var slot = document.createElement('div'); slot.className = 'csv-slot';
+
+        // Build options for DB select
+        var dbOptions = '<option value="">Bitte wählen...</option>';
+
+        slot.innerHTML = `
+          <h3>Quelle ${i + 1}</h3>
+          <div class="inline-group" style="margin-bottom:10px">
+            <div class="form-group">
+              <label>Quelle:</label>
+              <select id="sourceType${i}" onchange="toggleSourceType(${i})">
+                <option value="csv" ${csvData[i].source === 'csv' ? 'selected' : ''}>CSV-Datei Upload</option>
+                <option value="db" ${csvData[i].source === 'db' ? 'selected' : ''}>Lokale Datenbank</option>
+              </select>
+            </div>
+          </div>
+          
+          <!-- CSV BLOCK -->
+          <div id="csvBlock${i}" style="${csvData[i].source === 'csv' ? '' : 'display:none'}">
+            <div class="drop-zone" id="dropZone${i}" onclick="document.getElementById('fileInput${i}').click()">
+              <p>Dateien hier ablegen oder klicken zum Auswählen</p>
+              <input type="file" class="file-input" id="fileInput${i}" accept=".csv" multiple hidden>
+            </div>
+            <div class="file-list" id="fileList${i}"></div>
+            <div class="form-group">
+              <label>Trennzeichen:</label>
+              <select id="delimiter${i}" onchange="updateDelimiter(${i})">
+                <option value="," ${csvData[i].delimiter === ',' ? 'selected' : ''}>Komma (,)</option>
+                <option value=";" ${csvData[i].delimiter === ';' ? 'selected' : ''}>Semikolon (;)</option>
+                <option value="\t" ${csvData[i].delimiter === '\t' ? 'selected' : ''}>Tabulator</option>
+                <option value="|" ${csvData[i].delimiter === '|' ? 'selected' : ''}>Pipe (|)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Kopfzeile (0 = erste Zeile):</label>
+              <input type="number" id="headerRow${i}" value="${csvData[i].headerRow}" min="0" onchange="reloadCSV(${i})">
+            </div>
+          </div>
+          
+          <!-- DB BLOCK -->
+          <div id="dbBlock${i}" style="${csvData[i].source === 'db' ? '' : 'display:none'}">
+            <div class="config-section">
+              <h4>Datenbank Tabelle wählen</h4>
+              <div class="inline-group">
+                <div class="form-group" style="flex-grow:1">
+                  <label>Tabelle:</label>
+                  <select id="dbTableSelect${i}" onchange="loadFromDatabase(${i})">
+                    <option value="">Lade Tabellen...</option>
+                  </select>
+                </div>
+                <div class="form-group" style="flex:0">
+                  <label>&nbsp;</label>
+                  <button class="btn" onclick="refreshDBTables(${i})">Aktualisieren</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div id="preview${i}"></div>
+        `;
+
+        slots.appendChild(slot);
+        setupDropZone(i);
+        setupFileInput(i);
+
+        // If existing files, restore list
+        if (csvData[i].source === 'csv' && csvData[i].files.length > 0) {
+          updateFileList(i);
+          if (csvData[i].parsedData) displayPreview(i);
+        }
+
+        // If DB mode, load tables
+        if (csvData[i].source === 'db') {
+          refreshDBTables(i);
+        }
+      }
+
+      // If we are just initializing (no files yet), don't auto-advance if it was a refresh
+      // But if called from dropdown change, we stay in step 2
+    }
+
+    // === 4. SOURCE TYPE SWITCHING ===
+    async function toggleSourceType(i) {
+      var type = document.getElementById('sourceType' + i).value;
+      csvData[i].source = type;
+      csvData[i].parsedData = null; // Reset data on switch
+      document.getElementById('preview' + i).innerHTML = '';
+
+      if (type === 'csv') {
+        document.getElementById('csvBlock' + i).style.display = 'block';
+        document.getElementById('dbBlock' + i).style.display = 'none';
+      } else {
+        document.getElementById('csvBlock' + i).style.display = 'none';
+        document.getElementById('dbBlock' + i).style.display = 'block';
+        refreshDBTables(i);
+      }
+    }
+
+    async function refreshDBTables(i) {
+      const select = document.getElementById('dbTableSelect' + i);
+      select.innerHTML = '<option value="">Lade...</option>';
+
+      try {
+        const tables = await dbManager.listTables();
+        select.innerHTML = '<option value="">Bitte wählen...</option>';
+
+        tables.forEach(t => {
+          const option = document.createElement('option');
+          option.value = t.id;
+          option.textContent = `${t.tableName} (${t.rowCount} Zeilen)`;
+          if (csvData[i].dbTableId == t.id) option.selected = true;
+          select.appendChild(option);
+        });
+      } catch (err) {
+        console.error(err);
+        select.innerHTML = '<option value="">Fehler beim Laden</option>';
+      }
+    }
+
+    async function loadFromDatabase(i) {
+      const tableId = document.getElementById('dbTableSelect' + i).value;
+      if (!tableId) return;
+
+      csvData[i].dbTableId = tableId;
+      const preview = document.getElementById('preview' + i);
+      preview.innerHTML = '<div class="loading"><p>Lade aus Datenbank...</p></div>';
+
+      try {
+        const table = await dbManager.getTableById(parseInt(tableId));
+
+        // Convert DB data format to CSV Matcher format (array of arrays)
+        // DB data is already array of arrays, but first row is data, columns are separate
+        // We need to prepend columns as header row
+
+        const fullData = [table.columns, ...table.data];
+        csvData[i].parsedData = fullData;
+        csvData[i].headerRow = 0; // DB export always has header in row 0
+
+        displayPreview(i);
+        showAlert(`Quelle ${i + 1} (DB: ${table.tableName}) geladen: ${table.data.length} Zeilen`, 'success');
+      } catch (err) {
+        showAlert('Fehler beim Laden aus DB: ' + err.message, 'error');
+        preview.innerHTML = '';
+      }
+    }
+
+    // === 5. DROPZONE & FILE HANDLING ===
+    function setupDropZone(i) {
+      var dz = document.getElementById('dropZone' + i);
+      dz.addEventListener('dragover', function (e) { e.preventDefault(); dz.parentElement.classList.add('dragover'); });
+      dz.addEventListener('dragleave', function () { dz.parentElement.classList.remove('dragover'); });
+      dz.addEventListener('drop', function (e) {
+        e.preventDefault(); dz.parentElement.classList.remove('dragover');
+        var files = [].slice.call(e.dataTransfer.files).filter(function (f) { return /\.csv$/i.test(f.name); });
+        addFiles(i, files);
+      });
+    }
+
+    function setupFileInput(i) {
+      var fi = document.getElementById('fileInput' + i);
+      fi.addEventListener('change', function (e) { addFiles(i, [].slice.call(e.target.files)); });
+    }
+
+    function addFiles(i, files) { csvData[i].files = csvData[i].files.concat(files); updateFileList(i); loadAndParseCSV(i); }
+    function updateFileList(i) {
+      var list = document.getElementById('fileList' + i); list.innerHTML = '';
+      for (var idx = 0; idx < csvData[i].files.length; idx++) {
+        var file = csvData[i].files[idx];
+        var item = document.createElement('div'); item.className = 'file-item';
+        item.innerHTML = '<span>' + file.name + '</span><button onclick="removeFile(' + i + ',' + idx + ')">Entfernen</button>';
+        list.appendChild(item);
+      }
+    }
+
+    function removeFile(ci, fi) {
+      csvData[ci].files.splice(fi, 1); updateFileList(ci);
+      if (csvData[ci].files.length > 0) loadAndParseCSV(ci);
+      else { csvData[ci].parsedData = null; document.getElementById('preview' + ci).innerHTML = ''; }
+    }
+
+    function updateDelimiter(i) { csvData[i].delimiter = document.getElementById('delimiter' + i).value; loadAndParseCSV(i); }
+    function reloadCSV(i) { csvData[i].headerRow = +document.getElementById('headerRow' + i).value; loadAndParseCSV(i); }
+
+    function loadAndParseCSV(i) {
+      if (csvData[i].source !== 'csv' || csvData[i].files.length === 0) return;
+      var preview = document.getElementById('preview' + i);
+      preview.innerHTML = '<div class="loading"><p>Lade und parse CSV…</p></div>';
+      var promises = csvData[i].files.map(function (file) {
+        return new Promise(function (resolve, reject) {
+          Papa.parse(file, {
+            delimiter: csvData[i].delimiter,
+            skipEmptyLines: true,
+            encoding: 'UTF-8',
+            complete: function (res) { resolve(res.data); },
+            error: function (err) { reject(err); }
+          });
+        });
+      });
+      Promise.all(promises).then(function (allData) {
+        var merged = []; var headerRow = csvData[i].headerRow;
+        for (var k = 0; k < allData.length; k++) {
+          var data = allData[k];
+          if (k === 0) { merged = data; } else { if (data.length > headerRow + 1) { merged = merged.concat(data.slice(headerRow + 1)); } }
+        }
+        csvData[i].parsedData = merged;
+        displayPreview(i);
+        showAlert('Quelle ' + (i + 1) + ' (CSV) geladen: ' + (merged.length - headerRow - 1) + ' Datenzeilen', 'success');
+      }).catch(function (err) { showAlert('Fehler beim Laden: ' + err.message, 'error'); });
+    }
+
+    function displayPreview(i) {
+      var preview = document.getElementById('preview' + i);
+      var data = csvData[i].parsedData;
+      if (!data || data.length === 0) { preview.innerHTML = '<p class="subtitle">Keine Daten zum Anzeigen</p>'; return; }
+      var rowCount = data.length - csvData[i].headerRow - 1;
+      var html = '<span class="row-count">' + rowCount + ' Datenzeilen</span>';
+      if (rowCount > 0) {
+        html += '<div class="preview-table"><table style="width:auto;table-layout:auto;"><thead>';
+        var previewRows = Math.min(10, data.length);
+
+        // Header row
+        for (var r = 0; r < previewRows; r++) {
+          var row = data[r] || [];
+          if (r === csvData[i].headerRow) {
+            html += '<tr>';
+            for (var c = 0; c < row.length; c++) {
+              html += '<th>' + (row[c] == null ? '' : row[c]) + '</th>';
+            }
+            html += '</tr></thead><tbody>';
+          } else {
+            html += '<tr>';
+            for (var c = 0; c < row.length; c++) {
+              html += '<td>' + (row[c] == null ? '' : row[c]) + '</td>';
+            }
+            html += '</tr>';
+          }
+        }
+        html += '</tbody></table></div>';
+      }
+      preview.innerHTML = html;
+    }
+
+    function validateStep2() {
+      var ok = true;
+      for (var i = 0; i < csvData.length; i++) { if (csvData[i].parsedData == null) { ok = false; break; } }
+      if (!ok) showAlert('Bitte jede Quelle laden (CSV oder DB).', 'warning');
+      return ok;
+    }
+
+    // === 5. SCHRITT 3: SPALTENABGLEICH ===
+    function setupMatchConfig() {
+      var c = document.getElementById('matchConfig'); c.innerHTML = '';
+      // Nur wenn mehr als eine Quelle vorhanden ist, wird die Match-Konfiguration benötigt
+      if (csvData.length > 1) {
+        for (var idx = 0; idx < csvData.length; idx++) {
+          var csv = csvData[idx];
+          var headers = (csv.parsedData && csv.parsedData[csv.headerRow]) ? csv.parsedData[csv.headerRow] : [];
+          var div = document.createElement('div'); div.className = 'form-group';
+          var options = headers.map(function (h, i) { return '<option value="' + i + '">' + (h || ('Spalte ' + (i + 1))) + '</option>'; }).join('');
+          div.innerHTML = '<label>Abgleichspalte für Quelle ' + (idx + 1) + ':</label><select id="matchCol' + idx + '">' + options + '</select>';
+          c.appendChild(div);
+        }
+        var btn = document.createElement('button'); btn.className = 'btn'; btn.textContent = 'Vorschau generieren'; btn.onclick = generateMatchPreview; c.appendChild(btn);
+      } else {
+        c.innerHTML = '<div class="alert alert-info">Nur eine Quelle geladen. Es ist kein Abgleich erforderlich. Sie können direkt zum Export fortfahren.</div>';
+      }
+    }
+
+    function generateMatchPreview() {
+      var matchCols = []; for (var i = 0; i < csvData.length; i++) { var el = document.getElementById('matchCol' + i); matchCols.push(el ? +el.value : 0); }
+      var base = csvData[0]; var baseData = (base.parsedData || []).slice((base.headerRow || 0) + 1); var baseCol = matchCols[0] || 0;
+      var html = '<div class="config-section"><h3>Vorschau der ersten 10 Übereinstimmungen</h3>';
+      html += '<div class="preview-table"><table style="width:auto;table-layout:auto;"><thead><tr>';
+      for (var h = 0; h < csvData.length; h++) {
+        var csv = csvData[h];
+        var head = (csv.parsedData && csv.parsedData[csv.headerRow]) ? csv.parsedData[csv.headerRow][matchCols[h] || 0] : ('Quelle ' + (h + 1));
+        html += '<th>Q' + (h + 1) + ': ' + (head || '-') + '</th><th>Match</th>';
+      }
+      html += '</tr></thead><tbody>';
+      var n = Math.min(10, baseData.length);
+      for (var r = 0; r < n; r++) {
+        var baseVal = baseData[r][baseCol];
+        html += '<tr>';
+        for (var c = 0; c < csvData.length; c++) {
+          if (c === 0) { html += '<td>' + (baseVal == null ? '' : baseVal) + '</td><td>Success</td>'; }
+          else {
+            var data = (csvData[c].parsedData || []).slice((csvData[c].headerRow || 0) + 1);
+            var mcol = matchCols[c] || 0;
+            var found = null;
+
+            // Datum für Abgleich einmal parsen
+            const baseDate = parseGermanDate(baseVal);
+
+            for (var j = 0; j < data.length; j++) {
+              var targetVal = data[j][mcol];
+              var targetDate = parseGermanDate(targetVal);
+
+              // Verbesserte Matching-Logik (String, Loose String, Zahl, Datum)
+              if (normalizeStr(targetVal) === normalizeStr(baseVal)
+                || eqLoose(targetVal, baseVal)
+                || (!isNaN(toNumber(targetVal)) && toNumber(targetVal) === toNumber(baseVal))
+                || (baseDate && targetDate && baseDate.getTime() === targetDate.getTime())
+              ) {
+                found = data[j];
+                break;
+              }
+            }
+
+            html += '<td>' + (found ? found[mcol] : '-') + '</td><td>' + (found ? 'Success' : 'Failed') + '</td>';
+          }
+        }
+        html += '</tr>';
+      }
+      html += '</tbody></table></div></div>';
+      document.getElementById('matchPreview').innerHTML = html;
+    }
+
+    function validateStep3() { return true; }
+
+    // === 6. SCHRITT 4: EXPORT ===
+    function setupExportConfig() {
+      var baseSel = document.getElementById('baseCSV');
+      baseSel.innerHTML = '';
+      for (var i = 0; i < csvData.length; i++) {
+        var o = document.createElement('option');
+        o.value = i;
+        o.textContent = 'Quelle ' + (i + 1);
+        baseSel.appendChild(o);
+      }
+      buildColumnSelectionAccordion();
+      buildConditionalColumnsSection();
+      updateExportPreview();
+    }
+
+    function buildColumnSelectionAccordion() {
+      var container = document.getElementById('columnSelection');
+      container.innerHTML = '';
+      for (var cIdx = 0; cIdx < csvData.length; cIdx++) {
+        var csv = csvData[cIdx];
+        var headers = (csv.parsedData && csv.parsedData[csv.headerRow]) ? csv.parsedData[csv.headerRow] : [];
+        var section = document.createElement('div');
+        section.innerHTML = '<h4 style="margin:6px 0 8px">Quelle ' + (cIdx + 1) + '</h4>';
+        for (var colIdx = 0; colIdx < headers.length; colIdx++) {
+          var div = document.createElement('div');
+          div.className = 'checkbox-group';
+          var checked = (cIdx === 0) ? 'checked' : '';
+          div.innerHTML = '<input type="checkbox" id="col_' + cIdx + '_' + colIdx + '" ' + checked + ' onchange="updateExportPreview()"><label for="col_' + cIdx + '_' + colIdx + '">' + (headers[colIdx] || ('Spalte ' + (colIdx + 1))) + '</label>';
+          section.appendChild(div);
+        }
+        container.appendChild(section);
+      }
+    }
+
+    function buildConditionalColumnsSection() {
+      document.getElementById('conditionalColumns').innerHTML = '';
+    }
+
+    function toggleAccordion(header) {
+      header.classList.toggle('active');
+      var content = header.nextElementSibling;
+      content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+    }
+
+    function addConditionalColumn() {
+      var container = document.getElementById('conditionalColumns'); var id = conditionalColumnCounter++;
+      var colOpts = '<option value="">Festwert</option>';
+      for (var ci = 0; ci < csvData.length; ci++) {
+        var headers = (csvData[ci].parsedData && csvData[ci].parsedData[csvData[ci].headerRow]) ? csvData[ci].parsedData[csvData[ci].headerRow] : [];
+        for (var colIdx = 0; colIdx < headers.length; colIdx++) {
+          colOpts += '<option value="' + ci + '_' + colIdx + '">Q' + (ci + 1) + ': ' + (headers[colIdx] || ('Spalte ' + (colIdx + 1))) + '</option>';
+        }
+      }
+      var div = document.createElement('div'); div.className = 'conditional-column accordion'; div.id = 'condCol_' + id;
+      div.innerHTML = '<div class="accordion-header" onclick="toggleAccordion(this)">Bedingte Spalte ' + (id + 1) + '</div><div class="accordion-content"><div class="form-group"><label>Spaltenname:</label><input type="text" id="condName_' + id + '" value="Neue_Spalte_' + (id + 1) + '"></div><div class="form-group"><label>Typ:</label><select id="condType_' + id + '" onchange="updateConditionalType(' + id + ')"><option value="fixed">Festwert</option><option value="formula">Formel</option><option value="ifThen">Wenn-Dann</option><option value="concat">Konkatenation</option><option value="substring">Substring</option></select></div><div id="condConfig_' + id + '"></div><button class="btn btn-secondary" onclick="removeConditionalColumn(' + id + ')">Entfernen</button></div>';
+      container.appendChild(div); updateConditionalType(id);
+    }
+
+    function removeConditionalColumn(id) { var el = document.getElementById('condCol_' + id); if (el) el.remove(); updateExportPreview(); }
+
+    // EINE Definition der Funktion beibehalten
+    function updateConditionalType(id) {
+      var type = document.getElementById('condType_' + id).value;
+      var cfg = document.getElementById('condConfig_' + id);
+      var colOpts = '<option value="">Festwert</option>';
+      for (var ci = 0; ci < csvData.length; ci++) {
+        var headers = (csvData[ci].parsedData && csvData[ci].parsedData[csvData[ci].headerRow]) ? csvData[ci].parsedData[csvData[ci].headerRow] : [];
+        for (var colIdx = 0; colIdx < headers.length; colIdx++) {
+          colOpts += '<option value="' + ci + '_' + colIdx + '">Q' + (ci + 1) + ': ' + (headers[colIdx] || ('Spalte ' + (colIdx + 1))) + '</option>';
+        }
+      }
+      if (type === 'fixed') {
+        cfg.innerHTML = '<div class="form-group"><label>Wert:</label><input type="text" id="condValue_' + id + '" onchange="updateExportPreview()"></div>';
+      } else if (type === 'formula') {
+        cfg.innerHTML = '<div class="form-group"><label>Erste Spalte:</label><select id="condFormulaCol1_' + id + '" onchange="updateExportPreview()">' + colOpts + '</select></div><div class="form-group"><label>Operation:</label><select id="condFormulaOp_' + id + '" onchange="updateExportPreview()"><option value="*">Multiplizieren (*)</option><option value="/">Dividieren (/)</option><option value="+">Addieren (+)</option><option value="-">Subtrahieren (-)</option><option value="%">Modulo (%)</option><option value="^">Potenz (^)</option></select></div><div class="form-group"><label>Zweite Spalte oder Wert:</label><select id="condFormulaCol2_' + id + '" onchange="updateExportPreview()">' + colOpts + '</select></div><div class="form-group"><label>Wert (falls Festwert):</label><input type="number" id="condFormulaValue_' + id + '" value="1" step="any" onchange="updateExportPreview()"></div>';
+      } else if (type === 'ifThen') {
+        cfg.innerHTML = '<div id="conditionsContainer_' + id + '"></div><div class="inline-group"><div class="form-group"><label>Dann:</label><select id="condThenCol_' + id + '" onchange="updateExportPreview()">' + colOpts + '</select><input type="text" id="condThen_' + id + '" placeholder="oder Festwert" onchange="updateExportPreview()"></div><div class="form-group"><label>Sonst:</label><select id="condElseCol_' + id + '" onchange="updateExportPreview()">' + colOpts + '</select><input type="text" id="condElse_' + id + '" placeholder="oder Festwert" onchange="updateExportPreview()"></div></div><button class="btn btn-success" style="margin-top:8px;font-size:13px;padding:6px 10px" onclick="addCondition(' + id + ')">+ Bedingung hinzufügen</button>';
+        addCondition(id);
+      } else if (type === 'concat') {
+        cfg.innerHTML = '<div class="form-group"><label>Spalten (z.B. 0_1,1_2):</label><input type="text" id="condConcatCols_' + id + '" onchange="updateExportPreview()"></div><div class="form-group"><label>Trenner:</label><input type="text" id="condConcatSep_' + id + '" value=" " onchange="updateExportPreview()"></div>';
+      } else if (type === 'substring') {
+        cfg.innerHTML = '<div class="form-group"><label>Spalte:</label><select id="condSubstrCol_' + id + '" onchange="updateExportPreview()">' + colOpts + '</select></div><div class="form-group"><label>Start:</label><input type="number" id="condSubstrStart_' + id + '" value="0" onchange="updateExportPreview()"></div><div class="form-group"><label>Länge:</label><input type="number" id="condSubstrLen_' + id + '" value="10" onchange="updateExportPreview()"></div>';
+      }
+    }
+
+
+    // === 7. BEDINGUNGEN ===
+    function updateOperatorOptions(colId, condId) {
+      var typeSel = document.getElementById('condIfType_' + colId + '_' + condId);
+      var opSel = document.getElementById('condIfOp_' + colId + '_' + condId);
+      if (!typeSel || !opSel) return;
+      var dtype = typeSel.value;
+      if (dtype === 'date') {
+        opSel.innerHTML = ''
+          + '<option value=">=">von (inkl.)</option>'
+          + '<option value=">">nach (exkl.)</option>'
+          + '<option value="<=">bis (inkl.)</option>'
+          + '<option value="==">Gleich (==)</option>'
+          + '<option value="!=">Ungleich (!=)</option>'; // Hinzugefügt für explizite Gleichheit
+      } else {
+        opSel.innerHTML = ''
+          + '<option value="==">Gleich (==)</option>'
+          + '<option value="!=">Ungleich (!=)</option>'
+          + '<option value=">">Größer (>)</option>'
+          + '<option value=">=">Größer gleich (>=)</option>'
+          + '<option value="<">Kleiner (<)</option>'
+          + '<option value="<=">Kleiner gleich (<=)</option>'
+          + '<option value="contains">Enthält</option>'
+          + '<option value="startsWith">Beginnt mit</option>'
+          + '<option value="endsWith">Endet mit</option>';
+      }
+    }
+
+    function addCondition(colId) {
+      var container = document.getElementById('conditionsContainer_' + colId);
+      var currentCount = container.querySelectorAll('.condition-group').length;
+      var newCondId = currentCount;
+
+      var colOpts = '<option value="">—</option>';
+      for (var ci = 0; ci < csvData.length; ci++) {
+        var headers = (csvData[ci].parsedData && csvData[ci].parsedData[csvData[ci].headerRow]) ? csvData[ci].parsedData[csvData[ci].headerRow] : [];
+        for (var colIdx = 0; colIdx < headers.length; colIdx++) {
+          colOpts += '<option value="' + ci + '_' + colIdx + '">Q' + (ci + 1) + ': ' + (headers[colIdx] || ('Spalte ' + (colIdx + 1))) + '</option>';
+        }
+      }
+
+      if (currentCount > 0) {
+        var logic = document.createElement('div');
+        logic.className = 'logic-group';
+        logic.id = 'condLogic_' + colId + '_' + currentCount;
+        logic.innerHTML = '<label>Verknüpfung:</label><select id="condLogic_' + colId + '_' + currentCount + '" onchange="updateExportPreview()"><option value="AND">UND</option><option value="OR">ODER</option></select>';
+        container.appendChild(logic);
+      }
+
+      var div = document.createElement('div');
+      div.className = 'condition-group';
+      div.id = 'cond_' + colId + '_' + newCondId;
+      div.innerHTML =
+        '<div class="inline-group">' +
+        '<div class="form-group"><label>Spalte:</label><select id="condIfCol_' + colId + '_' + newCondId + '" onchange="updateExportPreview(); populateValueDatalist(this, document.getElementById(\'condIfValue_' + colId + '_' + newCondId + '\'))">' + colOpts + '</select></div>' +
+        '<div class="form-group"><label>Operator:</label><select id="condIfOp_' + colId + '_' + newCondId + '" onchange="updateExportPreview()"><option value="==">Gleich (==)</option><option value="!=">Ungleich (!=)</option><option value=">">Größer (>)</option><option value=">=">Größer gleich (>=)</option><option value="<">Kleiner (<)</option><option value="<=">Kleiner gleich (<=)</option><option value="contains">Enthält</option><option value="startsWith">Beginnt mit</option><option value="endsWith">Endet mit</option></select></div>' +
+        '<div class="form-group"><label>Wert:</label><div id="condIfValueContainer_' + colId + '_' + newCondId + '"><input type="text" id="condIfValue_' + colId + '_' + newCondId + '" list="dl_condIfValue_' + colId + '_' + newCondId + '" onchange="updateExportPreview()"></div></div>' +
+        '</div>' +
+        '<div class="form-group"><label>Datentyp:</label><select id="condIfType_' + colId + '_' + newCondId + '" onchange="updateConditionValueInput(' + colId + ',' + newCondId + '); updateOperatorOptions(' + colId + ',' + newCondId + ')"><option value="text">Text</option><option value="number">Zahl</option><option value="date">Datum</option></select></div>' +
+        '<button class="btn btn-secondary" onclick="removeCondition(' + colId + ',' + newCondId + ')">Bedingung entfernen</button>';
+      container.appendChild(div);
+
+      const colSelect = div.querySelector('#condIfCol_' + colId + '_' + newCondId);
+      const valueInput = div.querySelector('#condIfValue_' + colId + '_' + newCondId);
+      if (colSelect && valueInput) {
+        populateValueDatalist(colSelect, valueInput);
+      }
+    }
+
+    function removeCondition(colId, condId) {
+      var container = document.getElementById('conditionsContainer_' + colId);
+      var condEl = document.getElementById('cond_' + colId + '_' + condId);
+      var logicEl = document.getElementById('condLogic_' + colId + '_' + condId);
+
+      if (condEl) condEl.remove();
+      if (logicEl) logicEl.remove();
+
+      renumberConditions(colId);
+      updateExportPreview();
+    }
+
+    function renumberConditions(colId) {
+      var container = document.getElementById('conditionsContainer_' + colId);
+      var groups = container.querySelectorAll('.condition-group');
+      var logics = container.querySelectorAll('.logic-group');
+
+      groups.forEach((group, idx) => {
+        const oldId = group.id.split('_').pop();
+        group.id = 'cond_' + colId + '_' + idx;
+
+        group.querySelectorAll('select, input').forEach(el => {
+          if (!el.id) return;
+          const parts = el.id.split('_');
+          const suffix = parts.pop();
+          if (suffix !== oldId) return;
+          el.id = parts.join('_') + '_' + idx;
+
+          if (el.id.startsWith('condIfType_')) {
+            el.setAttribute('onchange', 'updateConditionValueInput(' + colId + ',' + idx + '); updateOperatorOptions(' + colId + ',' + idx + ')');
+          } else if (el.getAttribute('onchange')) {
+            const oc = el.getAttribute('onchange');
+            el.setAttribute('onchange', oc.replace(/_[0-9]+(?=\))/g, '_' + idx));
+          }
+        });
+
+        const btn = group.querySelector('button');
+        if (btn) btn.setAttribute('onclick', 'removeCondition(' + colId + ',' + idx + ')');
+
+        const oldCont = document.getElementById('condIfValueContainer_' + colId + '_' + oldId);
+        if (oldCont) oldCont.id = 'condIfValueContainer_' + colId + '_' + idx;
+      });
+
+      logics.forEach((logic, idx) => {
+        logic.id = 'condLogic_' + colId + '_' + (idx + 1);
+        const select = logic.querySelector('select');
+        if (select) {
+          select.id = 'condLogic_' + colId + '_' + (idx + 1);
+          select.setAttribute('onchange', 'updateExportPreview()');
+        }
+      });
+    }
+
+    function updateConditionValueInput(colId, condId) {
+      const type = document.getElementById('condIfType_' + colId + '_' + condId).value;
+      const container = document.getElementById('condIfValueContainer_' + colId + '_' + condId);
+      const input = container.querySelector('input');
+      const currentValue = input ? input.value : '';
+
+      let newInputHtml = '';
+      if (type === 'date') {
+        const parsed = parseGermanDate(currentValue);
+        // Beachte: parseGermanDate gibt UTC-Datum zurück. 
+        // toISOString().split('T')[0] funktioniert für das ISO-Datum-Format des Input-Feldes.
+        const isoValue = parsed ? parsed.toISOString().split('T')[0] : '';
+        newInputHtml = `<input type="date" id="condIfValue_${colId}_${condId}" value="${isoValue}" onchange="updateExportPreview()">`;
+      } else if (type === 'number') {
+        newInputHtml = `<input type="number" id="condIfValue_${colId}_${condId}" step="any" value="${currentValue}" onchange="updateExportPreview()">`;
+      } else {
+        const listId = 'dl_condIfValue_' + colId + '_' + condId;
+        newInputHtml = `<input type="text" id="condIfValue_${colId}_${condId}" list="${listId}" value="${currentValue}" onchange="updateExportPreview()">`;
+      }
+
+      container.innerHTML = newInputHtml;
+
+      if (type === 'text') {
+        const colSelect = document.getElementById('condIfCol_' + colId + '_' + condId);
+        const valueInput = document.getElementById('condIfValue_' + colId + '_' + condId);
+        if (colSelect && valueInput) populateValueDatalist(colSelect, valueInput);
+      }
+
+      updateExportPreview();
+    }
+
+    // === KORRIGIERT: ROBUSTES DEUTSCHES DATUMSPARSING ===
+    function parseGermanDate(str) {
+      if (!str) return null;
+      const s = String(str).trim();
+      if (!s) return null;
+
+      // 1. ISO-Format (YYYY-MM-DD)
+      const isoMatch = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(.*)?$/);
+      if (isoMatch) {
+        let [, year, month, day] = isoMatch.map(Number);
+        return new Date(Date.UTC(year, month - 1, day));
+      }
+
+      // 2. Deutsches Format (DD.MM.YYYY oder DD-MM-YYYY oder DD/MM/YYYY)
+      const deMatch = s.match(/^(\d{1,2})[\.\-\/](\d{1,2})[\.\-\/](\d{2,4})(.*)?$/);
+      if (deMatch) {
+        let [, day, month, year] = deMatch;
+        day = Number(day); month = Number(month); year = Number(year);
+        if (year < 100) year = year < 70 ? 2000 + year : 1900 + year;
+        if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+          return new Date(Date.UTC(year, month - 1, day));
+        }
+      }
+
+      // 3. Format mit Monatsnamen (z.B. 05. Okt 25 oder 5. Oktober 2025)
+      const monthNames = {
+        'jan': 0, 'januar': 0,
+        'feb': 1, 'februar': 1,
+        'mär': 2, 'mar': 2, 'märz': 2, 'maerz': 2,
+        'apr': 3, 'april': 3,
+        'mai': 4,
+        'jun': 5, 'juni': 5,
+        'jul': 6, 'juli': 6,
+        'aug': 7, 'august': 7,
+        'sep': 8, 'sept': 8, 'september': 8,
+        'okt': 9, 'oktober': 9,
+        'nov': 10, 'november': 10,
+        'dez': 11, 'dezember': 11
+      };
+
+      // Regex für "DD. MMM YY" oder "DD MMM YYYY" (Punkt optional)
+      const textMatch = s.match(/^(\d{1,2})\.?\s*([a-zA-ZäöüÄÖÜ]+)\.?\s*(\d{2,4})(.*)?$/);
+      if (textMatch) {
+        let [, day, monthStr, year] = textMatch;
+        day = Number(day);
+        year = Number(year);
+        const mLower = monthStr.toLowerCase();
+
+        if (monthNames.hasOwnProperty(mLower)) {
+          const month = monthNames[mLower];
+          if (year < 100) year = year < 70 ? 2000 + year : 1900 + year;
+          if (day >= 1 && day <= 31) {
+            return new Date(Date.UTC(year, month, day));
+          }
+        }
+      }
+
+      // 4. Alternatives ISO-Format (YYYY.MM.DD oder YYYY/MM/DD)
+      const altIsoMatch = s.match(/^(\d{4})[\.\/](\d{1,2})[\.\/](\d{1,2})(.*)?$/);
+      if (altIsoMatch) {
+        let [, year, month, day] = altIsoMatch.map(Number);
+        if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+          return new Date(Date.UTC(year, month - 1, day));
+        }
+      }
+
+      // 5. Excel Serial Date (Zahlen wie 45200)
+      if (/^\d{5}(\.\d+)?$/.test(s)) {
+        const serial = parseFloat(s);
+        const date = new Date(Date.UTC(1899, 11, 30 + Math.floor(serial)));
+        return date;
+      }
+
+      // 6. Fallback: Browser-Parsing
+      const generalDate = new Date(s);
+      if (!isNaN(generalDate.getTime())) {
+        return new Date(Date.UTC(generalDate.getFullYear(), generalDate.getMonth(), generalDate.getDate()));
+      }
+
+      return null;
+    }
+
+
+    // === FINAL FIX: compareByType ===
+    function compareByType(op, left, right, dtype) {
+      if (dtype === 'date') {
+        // parseGermanDate gibt jetzt ein UTC-Date-Objekt zurück
+        const L = parseGermanDate(left);
+        const R = parseGermanDate(right);
+        if (!L || !R) return false;
+
+        const Lt = L.getTime(), Rt = R.getTime();
+        switch (op) {
+          case '==': return Lt === Rt;
+          case '!=': return Lt !== Rt;
+          case '>': return Lt > Rt;
+          case '>=': return Lt >= Rt;
+          case '<': return Lt < Rt;
+          case '<=': return Lt <= Rt;
+        }
+        return false;
+      }
+
+      if (dtype === 'number') {
+        const L = toNumber(left), R = toNumber(right);
+        if (isNaN(L) || isNaN(R)) return false;
+        switch (op) {
+          case '==': return L === R;
+          case '!=': return L !== R;
+          case '>': return L > R;
+          case '>=': return L >= R;
+          case '<': return L < R;
+          case '<=': return L <= R;
+        }
+        return false;
+      }
+
+      const Ls = normalizeStr(left);
+      const Rs = normalizeStr(right);
+      switch (op) {
+        case '==': return Ls === Rs || levenshtein(Ls, Rs) <= 1;
+        case '!=': return !(Ls === Rs || levenshtein(Ls, Rs) <= 1);
+        case 'contains': return Ls.includes(Rs);
+        case 'startsWith': return Ls.startsWith(Rs);
+        case 'endsWith': return Ls.endsWith(Rs);
+        case '>': return Ls > Rs;
+        case '>=': return Ls >= Rs;
+        case '<': return Ls < Rs;
+        case '<=': return Ls <= Rs;
+      }
+      return false;
+    }
+
+    // === PERFORMANCE: INDEXING ===
+    var matchIndices = {}; // Cache: matchIndices[csvIndex][colIndex] = Map<Key, RowObject>
+
+    function buildMatchIndex(csvIndex, colIndex) {
+      if (!matchIndices[csvIndex]) matchIndices[csvIndex] = {};
+      if (matchIndices[csvIndex][colIndex]) return matchIndices[csvIndex][colIndex];
+
+      const index = new Map();
+      const data = (csvData[csvIndex].parsedData || []).slice((csvData[csvIndex].headerRow || 0) + 1);
+
+      // Build Index (Reverse Order so first occurrence overwrites last, or Normal Order? 
+      // Standard find() returns first match. So we should iterate normal order and set ONLY if not present.)
+      for (let r = 0; r < data.length; r++) {
+        const row = data[r];
+        const val = row[colIndex];
+        if (val == null) continue;
+
+        // 1. String Key
+        const strKey = normalizeStr(val);
+        if (!index.has('S:' + strKey)) index.set('S:' + strKey, row);
+
+        // 2. Number Key
+        const num = toNumber(val);
+        if (!isNaN(num)) {
+          if (!index.has('N:' + num)) index.set('N:' + num, row);
+        }
+
+        // 3. Date Key
+        const date = parseGermanDate(val);
+        if (date) {
+          const time = date.getTime();
+          if (!index.has('D:' + time)) index.set('D:' + time, row);
+        }
+      }
+
+      matchIndices[csvIndex][colIndex] = index;
+      return index;
+    }
+
+    function invalidateIndices(csvIndex) {
+      if (matchIndices[csvIndex]) delete matchIndices[csvIndex];
+    }
+
+    // === getMatchedValueWithDiagnosis ===
+    function getMatchedValueWithDiagnosis(baseRow, baseIndex, matchColumns, targetCSV, targetCol) {
+      let val = '';
+      if (targetCSV === baseIndex) {
+        val = baseRow[targetCol] ?? '';
+      } else {
+        const baseMatchCol = matchColumns[baseIndex] || 0;
+        const baseMatchValue = baseRow[baseMatchCol];
+        const baseKey = normalizeStr(baseMatchValue);
+
+        const targetData = (csvData[targetCSV].parsedData || []).slice((csvData[targetCSV].headerRow || 0) + 1);
+        const targetMatchCol = matchColumns[targetCSV] || 0;
+
+        let matched = null;
+
+        // === OPTIMIZATION: USE INDEX ===
+        // Lazy build index
+        const index = buildMatchIndex(targetCSV, targetMatchCol);
+
+        // 1. Try Exact String Match (Normalized)
+        if (index.has('S:' + baseKey)) {
+          matched = index.get('S:' + baseKey);
+        }
+        // 2. Try Number Match
+        else {
+          const bn = toNumber(baseMatchValue);
+          if (!isNaN(bn) && index.has('N:' + bn)) {
+            matched = index.get('N:' + bn);
+          }
+          // 3. Try Date Match
+          else {
+            const baseDate = parseGermanDate(baseMatchValue);
+            if (baseDate && index.has('D:' + baseDate.getTime())) {
+              matched = index.get('D:' + baseDate.getTime());
+            }
+          }
+        }
+
+        // 4. Fallback: Linear Search for Fuzzy Matching (Levenshtein) or Complex Logic
+        // Only run if NO match found yet AND we suspect fuzzy match might be needed?
+        // Currently, the logic supports Levenshtein <= 1. Index cannot do this.
+        // So if matched is null, we MUST iterate.
+
+        if (!matched) {
+          // Optimization: Only iterate if baseKey is not empty
+          if (baseKey.length > 0) {
+            const baseDate = parseGermanDate(baseMatchValue);
+            const bn = toNumber(baseMatchValue);
+
+            for (let r = 0; r < targetData.length; r++) {
+              const targetVal = targetData[r][targetMatchCol];
+
+              // Skip if exact match (already checked by index)
+              // But we need to check Levenshtein
+
+              if (eqLoose(targetVal, baseMatchValue)) { // Loose String Match (Levenshtein)
+                matched = targetData[r];
+                break;
+              }
+            }
+          }
+        }
+
+        val = matched ? (matched[targetCol] ?? '') : '';
+      }
+
+      let diagnosis = '';
+      const condElements = document.querySelectorAll('.condition-group');
+      for (const condEl of condElements) {
+        const parts = condEl.id.split('_');
+        const colId = +parts[1];
+        const condId = +parts[2];
+
+        const typeSel = document.getElementById('condIfType_' + colId + '_' + condId);
+        const colSel = document.getElementById('condIfCol_' + colId + '_' + condId);
+
+        if (typeSel && colSel && colSel.value) {
+          const [condCsvIdx, condColIdx] = colSel.value.split('_').map(Number);
+          if (condCsvIdx === targetCSV && condColIdx === targetCol) {
+            const dtype = typeSel.value;
+            if (dtype === 'date') {
+              const parsed = parseGermanDate(val);
+              diagnosis = parsed ? 'date-ok' : 'date-fail (' + val + ')';
+              break;
+            } else if (dtype === 'number') {
+              const parsed = toNumber(val);
+              diagnosis = !isNaN(parsed) ? 'number-ok' : 'number-fail (' + val + ')';
+              break;
+            }
+          }
+        }
+      }
+
+      return { value: val, diagnosis: diagnosis };
+    }
+
+    // === evaluateCondition ===
+    function evaluateCondition(colId, baseRow, baseIndex, matchCols) {
+      const container = document.getElementById('conditionsContainer_' + colId);
+      if (!container) return false;
+
+      const condDivs = Array.from(container.querySelectorAll('.condition-group'));
+      if (condDivs.length === 0) return false;
+
+      const results = [];
+      for (let i = 0; i < condDivs.length; i++) {
+        const condId = i;
+
+        const colSel = document.getElementById('condIfCol_' + colId + '_' + condId);
+        const op = (document.getElementById('condIfOp_' + colId + '_' + condId) || {}).value || '==';
+        const dtype = (document.getElementById('condIfType_' + colId + '_' + condId) || {}).value || 'text';
+
+        // HIER IST DIE KORREKTE ERMITTLUNG DES VERGLEICHSWERTES (RECHTS)
+        let rawCmp = '';
+        const cmpColEl = document.getElementById('condIfCol_' + colId + '_' + condId + '_cmp');
+        if (cmpColEl && cmpColEl.value) { // Vergleich gegen andere Spalte
+          const cmpSpec = cmpColEl.value.split('_').map(Number);
+          rawCmp = getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, +cmpSpec[0], +cmpSpec[1]).value;
+        } else { // Vergleich gegen Festwert-Eingabe
+          rawCmp = (document.getElementById('condIfValue_' + colId + '_' + condId) || {}).value ?? '';
+        }
+
+        const srcSpec = (colSel && colSel.value) ? colSel.value.split('_').map(Number) : [baseIndex, matchCols[baseIndex] || 0];
+        const srcVal = getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, +srcSpec[0], +srcSpec[1]).value;
+
+        results.push(compareByType(op, srcVal, rawCmp, dtype));
+      }
+
+      if (results.length === 1) return results[0];
+
+      let final = results[0];
+      for (let i = 1; i < results.length; i++) {
+        const logicEl = document.getElementById('condLogic_' + colId + '_' + i);
+        const logic = logicEl ? logicEl.value : 'AND';
+        final = (logic === 'AND') ? (final && results[i]) : (final || results[i]);
+      }
+      return final;
+    }
+
+    // === 8. EXPORT & HELPER ===
+    function updateExportPreview() {
+      var baseIndex = +document.getElementById('baseCSV').value;
+      var matchCols = []; for (var i = 0; i < csvData.length; i++) { var el = document.getElementById('matchCol' + i); matchCols.push(el ? +el.value : 0); }
+      var base = csvData[baseIndex]; var baseData = (base.parsedData || []).slice((base.headerRow || 0) + 1);
+
+      // KORREKTUR FÜR DOPPELTE BEDINGTE SPALTEN: Header und Daten bei jedem Aufruf leeren
+      var exportHeaders = [];
+      var exportData = [];
+
+      const diagnosisHeaders = [];
+
+      for (var i = 0; i < conditionalColumnCounter; i++) {
+        if (!document.getElementById('condCol_' + i)) continue;
+        var name = document.getElementById('condName_' + i) ? document.getElementById('condName_' + i).value : ('cond_' + (i + 1));
+        exportHeaders.push({ name: name, isConditional: true, id: i });
+      }
+      for (var ci = 0; ci < csvData.length; ci++) {
+        var headers = (csvData[ci].parsedData && csvData[ci].parsedData[csvData[ci].headerRow]) ? csvData[ci].parsedData[csvData[ci].headerRow] : [];
+        for (var colIdx = 0; colIdx < headers.length; colIdx++) {
+          var cb = document.getElementById('col_' + ci + '_' + colIdx);
+          if (cb && cb.checked) {
+            const name = headers[colIdx] || ('Spalte ' + (colIdx + 1));
+            exportHeaders.push({ name: name, csvIndex: ci, colIndex: colIdx });
+            diagnosisHeaders.push({ name: name + ' (Diag)', csvIndex: ci, colIndex: colIdx });
+          }
+        }
+      }
+
+      const finalHeaders = exportHeaders.concat(diagnosisHeaders);
+
+      var maxPreviewRows = Math.min(10, baseData.length);
+      for (var r = 0; r < maxPreviewRows; r++) {
+        var baseRow = baseData[r]; var outRow = []; var diagRow = [];
+
+        for (var h = 0; h < exportHeaders.length; h++) {
+          var header = exportHeaders[h];
+
+          if (header.isConditional) {
+            var id = header.id, type = document.getElementById('condType_' + id).value, val = '';
+            if (type === 'fixed') { val = document.getElementById('condValue_' + id) ? document.getElementById('condValue_' + id).value : ''; }
+            else if (type === 'formula') {
+              var fc1 = document.getElementById('condFormulaCol1_' + id).value.split('_'); var ci = +fc1[0] || 0; var co = +fc1[1] || 0;
+              var src1 = getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, ci, co).value;
+              var num1 = parseFloat(src1); var op = document.getElementById('condFormulaOp_' + id).value || '*';
+              var fc2 = document.getElementById('condFormulaCol2_' + id).value;
+              var fval = fc2 ? getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, +fc2.split('_')[0] || 0, +fc2.split('_')[1] || 0).value : document.getElementById('condFormulaValue_' + id).value || 1;
+              var num2 = parseFloat(fval);
+              if (!isNaN(num1) && !isNaN(num2)) { if (op === '*') val = num1 * num2; else if (op === '/') val = num1 / num2; else if (op === '+') val = num1 + num2; else if (op === '-') val = num1 - num2; else if (op === '%') val = num1 % num2; else if (op === '^') val = Math.pow(num1, num2); }
+            } else if (type === 'ifThen') {
+              var condOk = evaluateCondition(id, baseRow, baseIndex, matchCols);
+              var thenCol = document.getElementById('condThenCol_' + id).value;
+              var elseCol = document.getElementById('condElseCol_' + id).value;
+              if (condOk) {
+                val = thenCol ? getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, +thenCol.split('_')[0], +thenCol.split('_')[1]).value : document.getElementById('condThen_' + id).value;
+              }
+              else {
+                val = elseCol ? getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, +elseCol.split('_')[0], +elseCol.split('_')[1]).value : document.getElementById('condElse_' + id).value;
+              }
+            } else if (type === 'concat') {
+              var colsStr = document.getElementById('condConcatCols_' + id).value || '';
+              var sep = document.getElementById('condConcatSep_' + id).value || ' ';
+              var cols = colsStr.split(',').map(function (s) { return s.trim().split('_').map(Number); });
+              val = cols.map(function (c) { return getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, c[0], c[1]).value; }).join(sep);
+            } else if (type === 'substring') {
+              var fc = document.getElementById('condSubstrCol_' + id).value.split('_'); var ci = +fc[0] || 0; var co = +fc[1] || 0;
+              var src = getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, ci, co).value;
+              var start = +document.getElementById('condSubstrStart_' + id).value || 0;
+              var len = +document.getElementById('condSubstrLen_' + id).value || 10;
+              val = String(src).substring(start, len < 0 ? undefined : start + len);
+            }
+            outRow.push(val);
+          } else {
+            const result = getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, header.csvIndex, header.colIndex);
+            outRow.push(result.value);
+            diagRow.push(result.diagnosis);
+          }
+        }
+
+        for (const diagStatus of diagRow) {
+          outRow.push(diagStatus);
+        }
+
+        exportData.push(outRow);
+      }
+
+      var html = '<div class="preview-table"><table style="width:auto;table-layout:auto;"><thead><tr>';
+      for (var i = 0; i < exportHeaders.length; i++) {
+        html += '<th>' + exportHeaders[i].name + '</th>';
+      }
+      for (var i = 0; i < diagnosisHeaders.length; i++) {
+        const originalName = diagnosisHeaders[i].name.replace(' (Diag)', '');
+        html += '<th style="background:#575e67; font-size:11px; padding:8px">Diagnose<br>(' + originalName + ')</th>';
+      }
+      html += '</tr></thead><tbody>';
+
+      for (var rr = 0; rr < exportData.length; rr++) {
+        html += '<tr>';
+        for (var cc = 0; cc < exportData[rr].length; cc++) {
+          const val = exportData[rr][cc];
+
+          if (cc >= exportHeaders.length) {
+            let diagHtml = '-';
+            if (val.includes('date-ok')) {
+              diagHtml = '<span class="diagnosis-cell diag-date-ok">Datum OK</span>';
+            } else if (val.includes('date-fail')) {
+              const rawVal = val.split('(')[1].slice(0, -1);
+              diagHtml = '<span class="diagnosis-cell diag-date-fail">Datum FALSCH: ' + rawVal + '</span>';
+            } else if (val.includes('number-ok')) {
+              diagHtml = '<span class="diagnosis-cell diag-number-ok">Zahl OK</span>';
+            } else if (val.includes('number-fail')) {
+              const rawVal = val.split('(')[1].slice(0, -1);
+              diagHtml = '<span class="diagnosis-cell diag-number-fail">Zahl FALSCH: ' + rawVal + '</span>';
+            }
+            html += '<td>' + diagHtml + '</td>';
+          } else {
+            html += '<td>' + (val == null ? '' : val) + '</td>';
+          }
+        }
+        html += '</tr>';
+      }
+      html += '</tbody></table></div>';
+      html += '<span class="row-count">' + baseData.length + ' Zeilen zur Exportierung (Vorschau: ' + exportData.length + ' Zeilen)</span>';
+      document.getElementById('exportPreview').innerHTML = html;
+    }
+
+    function exportCSV() {
+      var baseIndex = +document.getElementById('baseCSV').value;
+      var matchCols = []; for (var i = 0; i < csvData.length; i++) { var el = document.getElementById('matchCol' + i); matchCols.push(el ? +el.value : 0); }
+      var base = csvData[baseIndex]; var baseData = (base.parsedData || []).slice((base.headerRow || 0) + 1);
+      var headers = [], meta = [], rows = [];
+      for (var i = 0; i < conditionalColumnCounter; i++) {
+        if (!document.getElementById('condCol_' + i)) continue;
+        var nm = document.getElementById('condName_' + i).value || ('cond_' + (i + 1));
+        headers.push(nm); meta.push({ isConditional: true, id: i, name: nm });
+      }
+      for (var ci = 0; ci < csvData.length; ci++) {
+        var hs = (csvData[ci].parsedData && csvData[ci].parsedData[csvData[ci].headerRow]) ? csvData[ci].parsedData[csvData[ci].headerRow] : [];
+        for (var co = 0; co < hs.length; co++) {
+          var cb = document.getElementById('col_' + ci + '_' + co);
+          if (cb && cb.checked) { headers.push(hs[co] || ('Spalte_' + (co + 1))); meta.push({ isConditional: false, csvIndex: ci, colIndex: co }); }
+        }
+      }
+      for (var r = 0; r < baseData.length; r++) {
+        var baseRow = baseData[r]; var row = [];
+        for (var h = 0; h < meta.length; h++) {
+          var m = meta[h];
+          if (m.isConditional) {
+            var id = m.id, type = document.getElementById('condType_' + id).value, v = '';
+            if (type === 'fixed') { v = document.getElementById('condValue_' + id).value || ''; }
+            else if (type === 'formula') {
+              var fc1 = document.getElementById('condFormulaCol1_' + id).value.split('_'); var ci = +fc1[0] || 0; var co = +fc1[1] || 0;
+              var src1 = getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, ci, co).value;
+              var num1 = parseFloat(src1); var op = document.getElementById('condFormulaOp_' + id).value || '*';
+              var fc2 = document.getElementById('condFormulaCol2_' + id).value;
+              var fval = fc2 ? getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, +fc2.split('_')[0] || 0, +fc2.split('_')[1] || 0).value : document.getElementById('condFormulaValue_' + id).value || 1;
+              var num2 = parseFloat(fval);
+              if (!isNaN(num1) && !isNaN(num2)) { if (op === '*') v = num1 * num2; else if (op === '/') v = num1 / num2; else if (op === '+') v = num1 + num2; else if (op === '-') v = num1 - num2; else if (op === '%') v = num1 % num2; else if (op === '^') v = Math.pow(num1, num2); }
+            } else if (type === 'ifThen') {
+              var condOk = evaluateCondition(id, baseRow, baseIndex, matchCols);
+              var thenCol = document.getElementById('condThenCol_' + id).value;
+              var elseCol = document.getElementById('condElseCol_' + id).value;
+              if (condOk) { v = thenCol ? getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, +thenCol.split('_')[0], +thenCol.split('_')[1]).value : document.getElementById('condThen_' + id).value; }
+              else { v = elseCol ? getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, +elseCol.split('_')[0], +elseCol.split('_')[1]).value : document.getElementById('condElse_' + id).value; }
+            } else if (type === 'concat') {
+              var colsStr = document.getElementById('condConcatCols_' + id).value || '';
+              var sep = document.getElementById('condConcatSep_' + id).value || ' ';
+              var cols = colsStr.split(',').map(function (s) { return s.trim().split('_').map(Number); });
+              v = cols.map(function (c) { return getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, c[0], c[1]).value; }).join(sep);
+            } else if (type === 'substring') {
+              var fc = document.getElementById('condSubstrCol_' + id).value.split('_'); var ci = +fc[0] || 0; var co = +fc[1] || 0;
+              var src = getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, ci, co).value;
+              var start = +document.getElementById('condSubstrStart_' + id).value || 0;
+              var len = +document.getElementById('condSubstrLen_' + id).value || 10;
+              v = String(src).substring(start, len < 0 ? undefined : start + len);
+            }
+            row.push(v);
+          } else {
+            row.push(getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, m.csvIndex, m.colIndex).value);
+          }
+        }
+        rows.push(row);
+      }
+      var csv = [headers].concat(rows).map(function (r) { return r.map(function (c) { var s = String(c == null ? '' : c); return (s.indexOf(';') > -1 || s.indexOf('"') > -1) ? ('"' + s.replace(/"/g, '""') + '"') : s; }).join(';'); }).join('\n');
+      var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' }); var a = document.createElement('a'); var url = URL.createObjectURL(blob);
+      a.href = url; a.download = 'merged_export_' + Date.now() + '.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      showAlert('CSV erfolgreich exportiert!', 'success');
+    }
+
+    function exportSQL() {
+      showAlert('SQL-Export ist in Entwicklung. CSV ist bereit!', 'info');
+    }
+
+    function toggleSourceType(i) {
+      var type = document.getElementById('sourceType' + i).value;
+      csvData[i].source = type;
+      document.getElementById('csvBlock' + i).style.display = (type === 'csv') ? 'block' : 'none';
+      document.getElementById('dbBlock' + i).style.display = (type === 'db') ? 'block' : 'none';
+    }
+
+    function dbLoadTables(i) { }
+    function dbLoadPreview(i) { }
+
+    // === 9. HELPER: NORMALIZE, COMPARE, DATALIST ===
+    function normalizeStr(s) {
+      return String(s ?? '')
+        .normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[Ää]/g, 'ae').replace(/[Öö]/g, 'oe').replace(/[Üü]/g, 'ue')
+        .replace(/ß/g, 'ss')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .toLowerCase();
+    }
+    function toNumber(x) {
+      if (x == null || x === '') return NaN;
+      const s = String(x).trim();
+      if (/,/.test(s) && !/\.\d{1,2}$/.test(s)) {
+        return parseFloat(s.replace(/\./g, '').replace(',', '.'));
+      }
+      return parseFloat(s.replace(/(?<=\d)\.(?=\d{3}(\D|$))/g, ''));
+    }
+
+    function levenshtein(a, b) {
+      const m = a.length, n = b.length;
+      if (m === 0) return n; if (n === 0) return m;
+      const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+      for (let i = 0; i <= m; i++) dp[i][0] = i;
+      for (let j = 0; j <= n; j++) dp[0][j] = j;
+      for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+          const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+          dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost);
+        }
+      }
+      return dp[m][n];
+    }
+    function eqLoose(a, b) {
+      const A = normalizeStr(a), B = normalizeStr(b);
+      if (A === B) return true;
+      return levenshtein(A, B) <= 1;
+    }
+
+    function unique(arr) { const s = new Set(); const out = []; for (const v of arr) { const k = normalizeStr(v); if (!s.has(k)) { s.add(k); out.push(v); } } return out; }
+    function populateValueDatalist(colSelectEl, valueInputEl) {
+      try {
+        if (valueInputEl.type === 'date') return;
+
+        const v = colSelectEl.value; if (!v) return;
+        const parts = v.split('_');
+        if (parts.length < 2) return;
+        const csvIdx = +parts[0], colIdx = +parts[1];
+        const recs = (csvData[csvIdx]?.parsedData || []).slice((csvData[csvIdx]?.headerRow || 0) + 1);
+        const listId = valueInputEl.getAttribute('list') || 'dl_' + valueInputEl.id;
+        let dl = document.getElementById(listId);
+        if (!dl) { dl = document.createElement('datalist'); dl.id = listId; document.body.appendChild(dl); valueInputEl.setAttribute('list', listId); }
+        dl.innerHTML = '';
+        const vals = unique(recs.map(r => r[colIdx]).filter(x => x != null && x !== ''));
+        const maxOpt = 200;
+        for (let i = 0; i < vals.length && i < maxOpt; i++) { const opt = document.createElement('option'); opt.value = String(vals[i]); dl.appendChild(opt); }
+      } catch (e) { console.warn('populateValueDatalist error', e); }
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+      document.addEventListener('change', function (e) {
+        const t = e.target;
+        if (t && t.id && t.id.startsWith('condIfCol_')) {
+          const parts = t.id.split('_');
+          const colId = parts[1], condId = parts[2];
+          const valueInput = document.getElementById('condIfValue_' + colId + '_' + condId);
+          if (valueInput) { populateValueDatalist(t, valueInput); }
+        }
+      });
+    });
+  </script>
+
+  <!-- Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js')
+          .then(registration => {
+            console.log('Service Worker registered successfully:', registration.scope);
+          })
+          .catch(error => {
+            console.log('Service Worker registration failed:', error);
+          });
+      });
+    }
+  </script>
+</body>
+
+</html>

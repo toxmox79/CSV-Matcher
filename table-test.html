@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabellen-Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f7fa;
+        }
+
+        .preview-table {
+            overflow-x: auto;
+            overflow-y: auto;
+            margin-top: 14px;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            background: #fff;
+            max-height: 70vh;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            min-width: 100%;
+        }
+
+        th {
+            background: #93c01f;
+            color: #fff;
+            padding: 12px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #e5e7eb;
+            white-space: nowrap;
+        }
+
+        tr:hover {
+            background: #f9fafb;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Tabellen-Scrolling Test</h1>
+    <p>Diese Tabelle sollte horizontal und vertikal scrollbar sein:</p>
+
+    <div class="preview-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Alter</th>
+                    <th>Stadt</th>
+                    <th>Email</th>
+                    <th>Telefon</th>
+                    <th>Adresse</th>
+                    <th>PLZ</th>
+                    <th>Land</th>
+                    <th>Firma</th>
+                    <th>Position</th>
+                    <th>Abteilung</th>
+                    <th>Gehalt</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Max Mustermann</td>
+                    <td>35</td>
+                    <td>Berlin</td>
+                    <td>max@example.com</td>
+                    <td>030-12345</td>
+                    <td>Musterstraße 1</td>
+                    <td>10115</td>
+                    <td>Deutschland</td>
+                    <td>Acme GmbH</td>
+                    <td>Manager</td>
+                    <td>Vertrieb</td>
+                    <td>65.000 €</td>
+                </tr>
+                <tr>
+                    <td>Anna Schmidt</td>
+                    <td>28</td>
+                    <td>München</td>
+                    <td>anna@example.com</td>
+                    <td>089-67890</td>
+                    <td>Testweg 5</td>
+                    <td>80331</td>
+                    <td>Deutschland</td>
+                    <td>Tech Solutions</td>
+                    <td>Entwicklerin</td>
+                    <td>IT</td>
+                    <td>58.000 €</td>
+                </tr>
+                <tr>
+                    <td>Peter Müller</td>
+                    <td>42</td>
+                    <td>Hamburg</td>
+                    <td>peter@example.com</td>
+                    <td>040-11111</td>
+                    <td>Beispielplatz 3</td>
+                    <td>20095</td>
+                    <td>Deutschland</td>
+                    <td>Consulting AG</td>
+                    <td>Berater</td>
+                    <td>Strategie</td>
+                    <td>72.000 €</td>
+                </tr>
+                <tr>
+                    <td>Lisa Weber</td>
+                    <td>31</td>
+                    <td>Köln</td>
+                    <td>lisa@example.com</td>
+                    <td>0221-22222</td>
+                    <td>Demostraße 7</td>
+                    <td>50667</td>
+                    <td>Deutschland</td>
+                    <td>Marketing Pro</td>
+                    <td>Marketingleiterin</td>
+                    <td>Marketing</td>
+                    <td>68.000 €</td>
+                </tr>
+                <tr>
+                    <td>Thomas Klein</td>
+                    <td>39</td>
+                    <td>Frankfurt</td>
+                    <td>thomas@example.com</td>
+                    <td>069-33333</td>
+                    <td>Testplatz 9</td>
+                    <td>60311</td>
+                    <td>Deutschland</td>
+                    <td>Finance Corp</td>
+                    <td>Controller</td>
+                    <td>Finanzen</td>
+                    <td>75.000 €</td>
+                </tr>
+                <tr>
+                    <td>Sarah Becker</td>
+                    <td>26</td>
+                    <td>Stuttgart</td>
+                    <td>sarah@example.com</td>
+                    <td>0711-44444</td>
+                    <td>Musterweg 11</td>
+                    <td>70173</td>
+                    <td>Deutschland</td>
+                    <td>Design Studio</td>
+                    <td>Designerin</td>
+                    <td>Kreativ</td>
+                    <td>52.000 €</td>
+                </tr>
+                <tr>
+                    <td>Michael Wagner</td>
+                    <td>45</td>
+                    <td>Düsseldorf</td>
+                    <td>michael@example.com</td>
+                    <td>0211-55555</td>
+                    <td>Beispielweg 13</td>
+                    <td>40210</td>
+                    <td>Deutschland</td>
+                    <td>Logistics Ltd</td>
+                    <td>Logistikleiter</td>
+                    <td>Operations</td>
+                    <td>78.000 €</td>
+                </tr>
+                <tr>
+                    <td>Julia Fischer</td>
+                    <td>33</td>
+                    <td>Leipzig</td>
+                    <td>julia@example.com</td>
+                    <td>0341-66666</td>
+                    <td>Demoweg 15</td>
+                    <td>04109</td>
+                    <td>Deutschland</td>
+                    <td>HR Solutions</td>
+                    <td>HR Managerin</td>
+                    <td>Personal</td>
+                    <td>62.000 €</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p style="margin-top: 20px; color: #666;">
+        ✅ Die Tabelle sollte horizontal scrollbar sein (viele Spalten)<br>
+        ✅ Die Tabelle sollte vertikal scrollbar sein (max-height: 70vh)<br>
+        ✅ Die Überschriften bleiben beim Scrollen oben (sticky header)
+    </p>
+</body>
+
+</html>
