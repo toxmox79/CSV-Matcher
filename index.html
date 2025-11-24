@@ -6,16 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Universal CSV Matcher & Merger</title>
 
-  <!-- PWA Meta Tags -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#93c01f">
+  <!-- Desktop App Meta Tags -->
   <meta name="description" content="CSV & DB mischen, matchen und exportieren (CSV/SQL)">
-
-  <!-- iOS Specific Meta Tags -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="CSV Matcher">
-  <link rel="apple-touch-icon" href="icon-192.png">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
   <script src="db-manager.js"></script>
   <script src="db-ui.js"></script>
@@ -213,6 +205,65 @@
       border-radius: 8px;
       cursor: pointer;
       font-size: 12px
+    }
+
+    .modal-buttons button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .modal-buttons button.primary {
+      background: #3498db;
+      color: #fff;
+    }
+
+    .modal-buttons button.cancel {
+      background: #e74c3c;
+      color: #fff;
+    }
+
+    /* Loading Overlay */
+    #loadingOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+    .spinner {
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #3498db;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 15px;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    #loadingText {
+      color: #fff;
+      font-size: 18px;
+      font-weight: bold;
     }
 
     .btn {
@@ -801,6 +852,186 @@
       margin-top: 8px;
       text-align: center;
     }
+
+    /* ============================================ */
+    /* PRESET MANAGEMENT MODAL */
+    /* ============================================ */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-container {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .modal-header h3 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--muted);
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .modal-close:hover {
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .modal-body {
+      margin-bottom: 20px;
+    }
+
+    .modal-footer {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+    }
+
+    .preset-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .preset-item {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s;
+    }
+
+    .preset-item:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .preset-info {
+      flex: 1;
+    }
+
+    .preset-name {
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .preset-meta {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .preset-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .preset-btn {
+      padding: 6px 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .preset-btn:hover {
+      background: var(--bg);
+    }
+
+    .preset-btn.load {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .preset-btn.load:hover {
+      background: var(--accent-700);
+    }
+
+    .preset-btn.delete {
+      color: #dc2626;
+      border-color: #fecaca;
+    }
+
+    .preset-btn.delete:hover {
+      background: #fef2f2;
+    }
+
+    .preset-selector {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 12px;
+      padding: 12px;
+      background: #f9fafb;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+    }
+
+    .preset-selector select {
+      flex: 1;
+      padding: 8px 10px;
+      border: 1.6px solid var(--line);
+      border-radius: 8px;
+      font-size: 14px;
+      background: #fff;
+    }
+
+    .preset-selector button {
+      padding: 8px 14px;
+      font-size: 13px;
+      white-space: nowrap;
+    }
   </style>
 </head>
 
@@ -897,7 +1128,25 @@
             <div class="accordion-header" onclick="toggleAccordion(this)">Bedingte Spalten hinzufügen</div>
             <div class="accordion-content" style="display:none;">
               <p class="subtitle" style="margin-bottom:12px">Füge Spalten hinzu, deren Wert von Bedingungen abhängt.</p>
-              <button class="btn btn-success" onclick="addConditionalColumn()">+ Neue bedingte Spalte</button>
+
+              <!-- Preset Selector -->
+              <div class="preset-selector">
+                <label style="margin:0; font-weight:600; white-space:nowrap;">📋 Preset:</label>
+                <select id="presetSelector" onchange="loadPresetFromDropdown()">
+                  <option value="">-- Preset wählen --</option>
+                </select>
+                <button class="btn btn-success" onclick="showSavePresetDialog()">💾 Speichern</button>
+                <button class="btn btn-secondary" onclick="showManagePresetsDialog()">⚙️ Verwalten</button>
+              </div>
+
+              <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px">
+                <button class="btn btn-success" onclick="addConditionalColumn()">+ Neue bedingte Spalte</button>
+                <button class="btn" onclick="exportConditions()">📥 Bedingungen exportieren</button>
+                <button class="btn btn-secondary" onclick="document.getElementById('importConditionsFile').click()">📤
+                  Bedingungen importieren</button>
+                <input type="file" id="importConditionsFile" accept=".json" style="display:none"
+                  onchange="importConditions(event)">
+              </div>
               <div id="conditionalColumns"></div>
             </div>
           </div>
@@ -1112,11 +1361,26 @@
     </div>
   </div>
 
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay">
+    <div class="spinner"></div>
+    <div id="loadingText">Verarbeite...</div>
+  </div>
+
   <script>
     // === 1. GLOBALE VARIABLEN ===
     var csvData = [];
     var currentStep = 1;
     var conditionalColumnCounter = 0;
+
+    // === UTILS ===
+    function showLoading(msg) {
+      document.getElementById('loadingText').textContent = msg || 'Verarbeite...';
+      document.getElementById('loadingOverlay').style.display = 'flex';
+    }
+    function hideLoading() {
+      document.getElementById('loadingOverlay').style.display = 'none';
+    }
 
     // === 2. HILFSFUNKTIONEN ===
     function showAlert(msg, type) {
@@ -1135,14 +1399,27 @@
     }
 
     function goToStep(step) {
-      if (step === 3 && !validateStep2()) return;
-      if (step === 4 && !validateStep3()) return;
-      var s = document.querySelectorAll('.step');
-      for (var i = 0; i < s.length; i++) { s[i].classList.remove('active'); }
-      document.getElementById('step' + step).classList.add('active');
-      currentStep = step; setProgress(step);
-      if (step === 3) setupMatchConfig();
-      else if (step === 4) setupExportConfig();
+      try {
+        if (step === 3 && !validateStep2()) return;
+        if (step === 4 && !validateStep3()) return;
+        var s = document.querySelectorAll('.step');
+        for (var i = 0; i < s.length; i++) { s[i].classList.remove('active'); }
+        document.getElementById('step' + step).classList.add('active');
+        currentStep = step; setProgress(step);
+        // Use setTimeout to allow UI to update before heavy operations
+        setTimeout(function () {
+          try {
+            if (step === 3) setupMatchConfig();
+            else if (step === 4) setupExportConfig();
+          } catch (e) {
+            console.error(e);
+            showAlert('Fehler beim Initialisieren von Schritt ' + step + ': ' + e.message, 'error');
+          }
+        }, 10);
+      } catch (err) {
+        console.error(err);
+        showAlert('Navigationsfehler: ' + err.message, 'error');
+      }
     }
 
     // === 3. INITIALISIERUNG ===
@@ -1351,7 +1628,9 @@
     function loadAndParseCSV(i) {
       if (csvData[i].source !== 'csv' || csvData[i].files.length === 0) return;
       var preview = document.getElementById('preview' + i);
-      preview.innerHTML = '<div class="loading"><p>Lade und parse CSV…</p></div>';
+      preview.innerHTML = ''; // Clear preview
+      showLoading('Lade und parse CSV...');
+
       var promises = csvData[i].files.map(function (file) {
         return new Promise(function (resolve, reject) {
           Papa.parse(file, {
@@ -1373,35 +1652,70 @@
         invalidateIndices(i); // Reset Index
         displayPreview(i);
         showAlert('Quelle ' + (i + 1) + ' (CSV) geladen: ' + (merged.length - headerRow - 1) + ' Datenzeilen', 'success');
-      }).catch(function (err) { showAlert('Fehler beim Laden: ' + err.message, 'error'); });
+        hideLoading();
+      }).catch(function (err) {
+        showAlert('Fehler beim Laden: ' + err.message, 'error');
+        hideLoading();
+      });
+    }
+
+    function changePreviewPageStep2(i, delta) {
+      var data = csvData[i].parsedData;
+      if (!data) return;
+      var rowCount = data.length - csvData[i].headerRow - 1;
+      var totalPages = Math.ceil(rowCount / previewPageSize);
+
+      if (currentPreviewPageStep2[i] === undefined) currentPreviewPageStep2[i] = 0;
+      currentPreviewPageStep2[i] += delta;
+      if (currentPreviewPageStep2[i] < 0) currentPreviewPageStep2[i] = 0;
+      if (currentPreviewPageStep2[i] >= totalPages) currentPreviewPageStep2[i] = totalPages - 1;
+
+      displayPreview(i);
     }
 
     function displayPreview(i) {
       var preview = document.getElementById('preview' + i);
       var data = csvData[i].parsedData;
       if (!data || data.length === 0) { preview.innerHTML = '<p class="subtitle">Keine Daten zum Anzeigen</p>'; return; }
+
       var rowCount = data.length - csvData[i].headerRow - 1;
+      var totalPages = Math.ceil(rowCount / previewPageSize);
+
+      if (currentPreviewPageStep2[i] === undefined) currentPreviewPageStep2[i] = 0;
+      if (currentPreviewPageStep2[i] >= totalPages) currentPreviewPageStep2[i] = Math.max(0, totalPages - 1);
+
+      var page = currentPreviewPageStep2[i];
+      var startIndex = csvData[i].headerRow + 1 + (page * previewPageSize);
+      var endIndex = Math.min(startIndex + previewPageSize, data.length);
+
       var html = '<span class="row-count">' + rowCount + ' Datenzeilen</span>';
+
+      // Pagination Controls
+      html += '<div style="margin-bottom:10px; display:flex; align-items:center; gap:10px;">';
+      html += '<button onclick="changePreviewPageStep2(' + i + ', -1)" ' + (page === 0 ? 'disabled' : '') + '>Vorherige</button>';
+      html += '<span>Seite ' + (page + 1) + ' von ' + (totalPages || 1) + '</span>';
+      html += '<button onclick="changePreviewPageStep2(' + i + ', 1)" ' + (page >= totalPages - 1 ? 'disabled' : '') + '>Nächste</button>';
+      html += '</div>';
+
       if (rowCount > 0) {
         html += '<div class="preview-table"><table style="width:auto;table-layout:auto;"><thead>';
-        var previewRows = Math.min(10, data.length);
 
         // Header row
-        for (var r = 0; r < previewRows; r++) {
+        var headerRow = data[csvData[i].headerRow] || [];
+        html += '<tr>';
+        for (var c = 0; c < headerRow.length; c++) {
+          html += '<th>' + (headerRow[c] == null ? '' : headerRow[c]) + '</th>';
+        }
+        html += '</tr></thead><tbody>';
+
+        // Data rows
+        for (var r = startIndex; r < endIndex; r++) {
           var row = data[r] || [];
-          if (r === csvData[i].headerRow) {
-            html += '<tr>';
-            for (var c = 0; c < row.length; c++) {
-              html += '<th>' + (row[c] == null ? '' : row[c]) + '</th>';
-            }
-            html += '</tr></thead><tbody>';
-          } else {
-            html += '<tr>';
-            for (var c = 0; c < row.length; c++) {
-              html += '<td>' + (row[c] == null ? '' : row[c]) + '</td>';
-            }
-            html += '</tr>';
+          html += '<tr>';
+          for (var c = 0; c < row.length; c++) {
+            html += '<td>' + (row[c] == null ? '' : row[c]) + '</td>';
           }
+          html += '</tr>';
         }
         html += '</tbody></table></div>';
       }
@@ -1434,53 +1748,75 @@
       }
     }
 
+    function changePreviewPageStep3(delta) {
+      var baseIndex = 0; // Assuming base is always 0 for match preview context
+      var base = csvData[baseIndex];
+      var baseData = (base.parsedData || []).slice((base.headerRow || 0) + 1);
+      var totalPages = Math.ceil(baseData.length / previewPageSize);
+
+      currentPreviewPageStep3 += delta;
+      if (currentPreviewPageStep3 < 0) currentPreviewPageStep3 = 0;
+      if (currentPreviewPageStep3 >= totalPages) currentPreviewPageStep3 = totalPages - 1;
+
+      generateMatchPreview();
+    }
+
     function generateMatchPreview() {
-      var matchCols = []; for (var i = 0; i < csvData.length; i++) { var el = document.getElementById('matchCol' + i); matchCols.push(el ? +el.value : 0); }
-      var base = csvData[0]; var baseData = (base.parsedData || []).slice((base.headerRow || 0) + 1); var baseCol = matchCols[0] || 0;
-      var html = '<div class="config-section"><h3>Vorschau der ersten 10 Übereinstimmungen</h3>';
-      html += '<div class="preview-table"><table style="width:auto;table-layout:auto;"><thead><tr>';
-      for (var h = 0; h < csvData.length; h++) {
-        var csv = csvData[h];
-        var head = (csv.parsedData && csv.parsedData[csv.headerRow]) ? csv.parsedData[csv.headerRow][matchCols[h] || 0] : ('Quelle ' + (h + 1));
-        html += '<th>Q' + (h + 1) + ': ' + (head || '-') + '</th><th>Match</th>';
-      }
-      html += '</tr></thead><tbody>';
-      var n = Math.min(10, baseData.length);
-      for (var r = 0; r < n; r++) {
-        var baseVal = baseData[r][baseCol];
-        html += '<tr>';
-        for (var c = 0; c < csvData.length; c++) {
-          if (c === 0) { html += '<td>' + (baseVal == null ? '' : baseVal) + '</td><td>Success</td>'; }
-          else {
-            var data = (csvData[c].parsedData || []).slice((csvData[c].headerRow || 0) + 1);
-            var mcol = matchCols[c] || 0;
-            var found = null;
+      showLoading('Generiere Vorschau...');
+      setTimeout(function () {
+        var matchCols = []; for (var i = 0; i < csvData.length; i++) { var el = document.getElementById('matchCol' + i); matchCols.push(el ? +el.value : 0); }
+        var base = csvData[0]; var baseData = (base.parsedData || []).slice((base.headerRow || 0) + 1); var baseCol = matchCols[0] || 0;
 
-            // Datum für Abgleich einmal parsen
-            const baseDate = parseGermanDate(baseVal);
+        // Pagination Logic
+        var totalRows = baseData.length;
+        var totalPages = Math.ceil(totalRows / previewPageSize);
+        if (currentPreviewPageStep3 >= totalPages) currentPreviewPageStep3 = Math.max(0, totalPages - 1);
 
-            for (var j = 0; j < data.length; j++) {
-              var targetVal = data[j][mcol];
-              var targetDate = parseGermanDate(targetVal);
+        var startIndex = currentPreviewPageStep3 * previewPageSize;
+        var endIndex = Math.min(startIndex + previewPageSize, totalRows);
 
-              // Verbesserte Matching-Logik (String, Loose String, Zahl, Datum)
-              if (normalizeStr(targetVal) === normalizeStr(baseVal)
-                || eqLoose(targetVal, baseVal)
-                || (!isNaN(toNumber(targetVal)) && toNumber(targetVal) === toNumber(baseVal))
-                || (baseDate && targetDate && baseDate.getTime() === targetDate.getTime())
-              ) {
-                found = data[j];
-                break;
-              }
-            }
+        var html = '<div class="config-section"><h3>Vorschau der Übereinstimmungen</h3>';
 
-            html += '<td>' + (found ? found[mcol] : '-') + '</td><td>' + (found ? 'Success' : 'Failed') + '</td>';
-          }
+        // Pagination Controls
+        html += '<div style="margin-bottom:10px; display:flex; align-items:center; gap:10px;">';
+        html += '<button onclick="changePreviewPageStep3(-1)" ' + (currentPreviewPageStep3 === 0 ? 'disabled' : '') + '>Vorherige</button>';
+        html += '<span>Seite ' + (currentPreviewPageStep3 + 1) + ' von ' + (totalPages || 1) + '</span>';
+        html += '<button onclick="changePreviewPageStep3(1)" ' + (currentPreviewPageStep3 >= totalPages - 1 ? 'disabled' : '') + '>Nächste</button>';
+        html += '</div>';
+
+        html += '<div class="preview-table"><table style="width:auto;table-layout:auto;"><thead><tr>';
+        for (var h = 0; h < csvData.length; h++) {
+          var csv = csvData[h];
+          var head = (csv.parsedData && csv.parsedData[csv.headerRow]) ? csv.parsedData[csv.headerRow][matchCols[h] || 0] : ('Quelle ' + (h + 1));
+          html += '<th>Q' + (h + 1) + ': ' + (head || '-') + '</th><th>Match</th>';
         }
-        html += '</tr>';
-      }
-      html += '</tbody></table></div></div>';
-      document.getElementById('matchPreview').innerHTML = html;
+        html += '</tr></thead><tbody>';
+
+        // Clear cache to ensure fresh matching with current config
+        matchResultCache.clear();
+
+        for (var r = startIndex; r < endIndex; r++) {
+          var baseRow = baseData[r];
+          var baseVal = baseRow[baseCol];
+          html += '<tr>';
+          for (var c = 0; c < csvData.length; c++) {
+            if (c === 0) { html += '<td>' + (baseVal == null ? '' : baseVal) + '</td><td>Success</td>'; }
+            else {
+              // Use optimized matching
+              var mcol = matchCols[c] || 0;
+              var result = getMatchedValueWithDiagnosis(baseRow, 0, matchCols, c, mcol);
+              var foundVal = result.value;
+              var success = foundVal !== ''; // Simple check: if we got a value, it matched
+
+              html += '<td>' + foundVal + '</td><td>' + (success ? 'Success' : 'Failed') + '</td>';
+            }
+          }
+          html += '</tr>';
+        }
+        html += '</tbody></table></div></div>';
+        document.getElementById('matchPreview').innerHTML = html;
+        hideLoading();
+      }, 10);
     }
 
     function validateStep3() { return true; }
@@ -1856,8 +2192,16 @@
       return false;
     }
 
-    // === PERFORMANCE: INDEXING ===
+    // === PERFORMANCE: INDEXING & CACHING ===
     var matchIndices = {}; // Cache: matchIndices[csvIndex][colIndex] = Map<Key, RowObject>
+    var matchResultCache = new Map(); // Cache: matchResultCache[targetCSV] = Map<baseRow, matchedRow>
+    var updatePreviewTimeout;
+
+    var currentPreviewPage = 0;
+    const previewPageSize = 50;
+
+    var currentPreviewPageStep2 = {};
+    var currentPreviewPageStep3 = 0;
 
     function buildMatchIndex(csvIndex, colIndex) {
       if (!matchIndices[csvIndex]) matchIndices[csvIndex] = {};
@@ -1905,61 +2249,57 @@
       if (targetCSV === baseIndex) {
         val = baseRow[targetCol] ?? '';
       } else {
-        const baseMatchCol = matchColumns[baseIndex] || 0;
-        const baseMatchValue = baseRow[baseMatchCol];
-        const baseKey = normalizeStr(baseMatchValue);
-
-        const targetData = (csvData[targetCSV].parsedData || []).slice((csvData[targetCSV].headerRow || 0) + 1);
-        const targetMatchCol = matchColumns[targetCSV] || 0;
-
+        // === OPTIMIZATION: CACHE MATCHED ROW ===
         let matched = null;
+        let cacheKey = targetCSV;
+        if (!matchResultCache.has(cacheKey)) matchResultCache.set(cacheKey, new Map());
+        let rowCache = matchResultCache.get(cacheKey);
 
-        // === OPTIMIZATION: USE INDEX ===
-        // Lazy build index
-        const index = buildMatchIndex(targetCSV, targetMatchCol);
+        if (rowCache.has(baseRow)) {
+          matched = rowCache.get(baseRow);
+        } else {
+          const baseMatchCol = matchColumns[baseIndex] || 0;
+          const baseMatchValue = baseRow[baseMatchCol];
+          const baseKey = normalizeStr(baseMatchValue);
 
-        // 1. Try Exact String Match (Normalized)
-        if (index.has('S:' + baseKey)) {
-          matched = index.get('S:' + baseKey);
-        }
-        // 2. Try Number Match
-        else {
-          const bn = toNumber(baseMatchValue);
-          if (!isNaN(bn) && index.has('N:' + bn)) {
-            matched = index.get('N:' + bn);
+          const targetData = (csvData[targetCSV].parsedData || []).slice((csvData[targetCSV].headerRow || 0) + 1);
+          const targetMatchCol = matchColumns[targetCSV] || 0;
+
+          // Lazy build index
+          const index = buildMatchIndex(targetCSV, targetMatchCol);
+
+          // 1. Try Exact String Match (Normalized)
+          if (index.has('S:' + baseKey)) {
+            matched = index.get('S:' + baseKey);
           }
-          // 3. Try Date Match
+          // 2. Try Number Match
           else {
-            const baseDate = parseGermanDate(baseMatchValue);
-            if (baseDate && index.has('D:' + baseDate.getTime())) {
-              matched = index.get('D:' + baseDate.getTime());
-            }
-          }
-        }
-
-        // 4. Fallback: Linear Search for Fuzzy Matching (Levenshtein) or Complex Logic
-        // Only run if NO match found yet AND we suspect fuzzy match might be needed?
-        // Currently, the logic supports Levenshtein <= 1. Index cannot do this.
-        // So if matched is null, we MUST iterate.
-
-        if (!matched) {
-          // Optimization: Only iterate if baseKey is not empty
-          if (baseKey.length > 0) {
-            const baseDate = parseGermanDate(baseMatchValue);
             const bn = toNumber(baseMatchValue);
-
-            for (let r = 0; r < targetData.length; r++) {
-              const targetVal = targetData[r][targetMatchCol];
-
-              // Skip if exact match (already checked by index)
-              // But we need to check Levenshtein
-
-              if (eqLoose(targetVal, baseMatchValue)) { // Loose String Match (Levenshtein)
-                matched = targetData[r];
-                break;
+            if (!isNaN(bn) && index.has('N:' + bn)) {
+              matched = index.get('N:' + bn);
+            }
+            // 3. Try Date Match
+            else {
+              const baseDate = parseGermanDate(baseMatchValue);
+              if (baseDate && index.has('D:' + baseDate.getTime())) {
+                matched = index.get('D:' + baseDate.getTime());
               }
             }
           }
+
+          // 4. Fallback: Linear Search for Fuzzy Matching (Levenshtein)
+          if (!matched) {
+            if (baseKey.length > 0) {
+              for (let r = 0; r < targetData.length; r++) {
+                const targetVal = targetData[r][targetMatchCol];
+                if (eqLoose(targetVal, baseMatchValue)) {
+                  matched = targetData[r];
+                  break;
+                }
+              }
+            }
+          }
+          rowCache.set(baseRow, matched);
         }
 
         val = matched ? (matched[targetCol] ?? '') : '';
@@ -2040,196 +2380,746 @@
 
     // === 8. EXPORT & HELPER ===
     function updateExportPreview() {
+      if (updatePreviewTimeout) clearTimeout(updatePreviewTimeout);
+      updatePreviewTimeout = setTimeout(doUpdateExportPreview, 200);
+    }
+
+    function changePreviewPage(delta) {
       var baseIndex = +document.getElementById('baseCSV').value;
-      var matchCols = []; for (var i = 0; i < csvData.length; i++) { var el = document.getElementById('matchCol' + i); matchCols.push(el ? +el.value : 0); }
-      var base = csvData[baseIndex]; var baseData = (base.parsedData || []).slice((base.headerRow || 0) + 1);
+      var base = csvData[baseIndex];
+      var baseData = (base.parsedData || []).slice((base.headerRow || 0) + 1);
+      var totalPages = Math.ceil(baseData.length / previewPageSize);
 
-      // KORREKTUR FÜR DOPPELTE BEDINGTE SPALTEN: Header und Daten bei jedem Aufruf leeren
-      var exportHeaders = [];
-      var exportData = [];
+      currentPreviewPage += delta;
+      if (currentPreviewPage < 0) currentPreviewPage = 0;
+      if (currentPreviewPage >= totalPages) currentPreviewPage = totalPages - 1;
 
-      const diagnosisHeaders = [];
+      doUpdateExportPreview();
+    }
 
-      for (var i = 0; i < conditionalColumnCounter; i++) {
-        if (!document.getElementById('condCol_' + i)) continue;
-        var name = document.getElementById('condName_' + i) ? document.getElementById('condName_' + i).value : ('cond_' + (i + 1));
-        exportHeaders.push({ name: name, isConditional: true, id: i });
-      }
-      for (var ci = 0; ci < csvData.length; ci++) {
-        var headers = (csvData[ci].parsedData && csvData[ci].parsedData[csvData[ci].headerRow]) ? csvData[ci].parsedData[csvData[ci].headerRow] : [];
-        for (var colIdx = 0; colIdx < headers.length; colIdx++) {
-          var cb = document.getElementById('col_' + ci + '_' + colIdx);
-          if (cb && cb.checked) {
-            const name = headers[colIdx] || ('Spalte ' + (colIdx + 1));
-            exportHeaders.push({ name: name, csvIndex: ci, colIndex: colIdx });
-            diagnosisHeaders.push({ name: name + ' (Diag)', csvIndex: ci, colIndex: colIdx });
-          }
+    function doUpdateExportPreview() {
+      showLoading('Aktualisiere Vorschau...');
+      setTimeout(function () {
+        matchResultCache.clear(); // Clear cache on new preview
+
+        var baseIndex = +document.getElementById('baseCSV').value;
+        var matchCols = []; for (var i = 0; i < csvData.length; i++) { var el = document.getElementById('matchCol' + i); matchCols.push(el ? +el.value : 0); }
+        var base = csvData[baseIndex]; var baseData = (base.parsedData || []).slice((base.headerRow || 0) + 1);
+
+        var exportHeaders = [];
+        var diagnosisHeaders = [];
+
+        for (var i = 0; i < conditionalColumnCounter; i++) {
+          if (!document.getElementById('condCol_' + i)) continue;
+          var name = document.getElementById('condName_' + i) ? document.getElementById('condName_' + i).value : ('cond_' + (i + 1));
+          exportHeaders.push({ name: name, isConditional: true, id: i });
         }
-      }
-
-      const finalHeaders = exportHeaders.concat(diagnosisHeaders);
-
-      var maxPreviewRows = Math.min(10, baseData.length);
-      for (var r = 0; r < maxPreviewRows; r++) {
-        var baseRow = baseData[r]; var outRow = []; var diagRow = [];
-
-        for (var h = 0; h < exportHeaders.length; h++) {
-          var header = exportHeaders[h];
-
-          if (header.isConditional) {
-            var id = header.id, type = document.getElementById('condType_' + id).value, val = '';
-            if (type === 'fixed') { val = document.getElementById('condValue_' + id) ? document.getElementById('condValue_' + id).value : ''; }
-            else if (type === 'formula') {
-              var fc1 = document.getElementById('condFormulaCol1_' + id).value.split('_'); var ci = +fc1[0] || 0; var co = +fc1[1] || 0;
-              var src1 = getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, ci, co).value;
-              var num1 = parseFloat(src1); var op = document.getElementById('condFormulaOp_' + id).value || '*';
-              var fc2 = document.getElementById('condFormulaCol2_' + id).value;
-              var fval = fc2 ? getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, +fc2.split('_')[0] || 0, +fc2.split('_')[1] || 0).value : document.getElementById('condFormulaValue_' + id).value || 1;
-              var num2 = parseFloat(fval);
-              if (!isNaN(num1) && !isNaN(num2)) { if (op === '*') val = num1 * num2; else if (op === '/') val = num1 / num2; else if (op === '+') val = num1 + num2; else if (op === '-') val = num1 - num2; else if (op === '%') val = num1 % num2; else if (op === '^') val = Math.pow(num1, num2); }
-            } else if (type === 'ifThen') {
-              var condOk = evaluateCondition(id, baseRow, baseIndex, matchCols);
-              var thenCol = document.getElementById('condThenCol_' + id).value;
-              var elseCol = document.getElementById('condElseCol_' + id).value;
-              if (condOk) {
-                val = thenCol ? getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, +thenCol.split('_')[0], +thenCol.split('_')[1]).value : document.getElementById('condThen_' + id).value;
-              }
-              else {
-                val = elseCol ? getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, +elseCol.split('_')[0], +elseCol.split('_')[1]).value : document.getElementById('condElse_' + id).value;
-              }
-            } else if (type === 'concat') {
-              var colsStr = document.getElementById('condConcatCols_' + id).value || '';
-              var sep = document.getElementById('condConcatSep_' + id).value || ' ';
-              var cols = colsStr.split(',').map(function (s) { return s.trim().split('_').map(Number); });
-              val = cols.map(function (c) { return getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, c[0], c[1]).value; }).join(sep);
-            } else if (type === 'substring') {
-              var fc = document.getElementById('condSubstrCol_' + id).value.split('_'); var ci = +fc[0] || 0; var co = +fc[1] || 0;
-              var src = getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, ci, co).value;
-              var start = +document.getElementById('condSubstrStart_' + id).value || 0;
-              var len = +document.getElementById('condSubstrLen_' + id).value || 10;
-              val = String(src).substring(start, len < 0 ? undefined : start + len);
+        for (var ci = 0; ci < csvData.length; ci++) {
+          var headers = (csvData[ci].parsedData && csvData[ci].parsedData[csvData[ci].headerRow]) ? csvData[ci].parsedData[csvData[ci].headerRow] : [];
+          for (var colIdx = 0; colIdx < headers.length; colIdx++) {
+            var cb = document.getElementById('col_' + ci + '_' + colIdx);
+            if (cb && cb.checked) {
+              const name = headers[colIdx] || ('Spalte ' + (colIdx + 1));
+              exportHeaders.push({ name: name, csvIndex: ci, colIndex: colIdx });
+              diagnosisHeaders.push({ name: name + ' (Diag)', csvIndex: ci, colIndex: colIdx });
             }
-            outRow.push(val);
-          } else {
-            const result = getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, header.csvIndex, header.colIndex);
-            outRow.push(result.value);
-            diagRow.push(result.diagnosis);
           }
         }
 
-        for (const diagStatus of diagRow) {
-          outRow.push(diagStatus);
-        }
+        const finalHeaders = exportHeaders.concat(diagnosisHeaders);
 
-        exportData.push(outRow);
-      }
+        // Pagination Logic
+        var totalRows = baseData.length;
+        var totalPages = Math.ceil(totalRows / previewPageSize);
+        if (currentPreviewPage >= totalPages) currentPreviewPage = Math.max(0, totalPages - 1);
 
-      var html = '<div class="preview-table"><table style="width:auto;table-layout:auto;"><thead><tr>';
-      for (var i = 0; i < exportHeaders.length; i++) {
-        html += '<th>' + exportHeaders[i].name + '</th>';
-      }
-      for (var i = 0; i < diagnosisHeaders.length; i++) {
-        const originalName = diagnosisHeaders[i].name.replace(' (Diag)', '');
-        html += '<th style="background:#575e67; font-size:11px; padding:8px">Diagnose<br>(' + originalName + ')</th>';
-      }
-      html += '</tr></thead><tbody>';
+        var startIndex = currentPreviewPage * previewPageSize;
+        var endIndex = Math.min(startIndex + previewPageSize, totalRows);
 
-      for (var rr = 0; rr < exportData.length; rr++) {
-        html += '<tr>';
-        for (var cc = 0; cc < exportData[rr].length; cc++) {
-          const val = exportData[rr][cc];
+        var html = '<div style="margin-bottom:10px; display:flex; align-items:center; gap:10px;">';
+        html += '<button onclick="changePreviewPage(-1)" ' + (currentPreviewPage === 0 ? 'disabled' : '') + '>Vorherige</button>';
+        html += '<span>Seite ' + (currentPreviewPage + 1) + ' von ' + (totalPages || 1) + ' (' + totalRows + ' Zeilen)</span>';
+        html += '<button onclick="changePreviewPage(1)" ' + (currentPreviewPage >= totalPages - 1 ? 'disabled' : '') + '>Nächste</button>';
+        html += '</div>';
 
-          if (cc >= exportHeaders.length) {
-            let diagHtml = '-';
-            if (val.includes('date-ok')) {
-              diagHtml = '<span class="diagnosis-cell diag-date-ok">Datum OK</span>';
-            } else if (val.includes('date-fail')) {
-              const rawVal = val.split('(')[1].slice(0, -1);
-              diagHtml = '<span class="diagnosis-cell diag-date-fail">Datum FALSCH: ' + rawVal + '</span>';
-            } else if (val.includes('number-ok')) {
-              diagHtml = '<span class="diagnosis-cell diag-number-ok">Zahl OK</span>';
-            } else if (val.includes('number-fail')) {
-              const rawVal = val.split('(')[1].slice(0, -1);
-              diagHtml = '<span class="diagnosis-cell diag-number-fail">Zahl FALSCH: ' + rawVal + '</span>';
+        html += '<div class="preview-table"><table style="width:auto;table-layout:auto;"><thead><tr>';
+        finalHeaders.forEach(function (h) {
+          if (h.name.includes('(Diag)')) {
+            const originalName = h.name.replace(' (Diag)', '');
+            html += '<th style="background:#575e67; font-size:11px; padding:8px">Diagnose<br>(' + originalName + ')</th>';
+          } else {
+            html += '<th>' + h.name + '</th>';
+          }
+        });
+        html += '</tr></thead><tbody id="exportPreviewBody">';
+
+        for (var r = startIndex; r < endIndex; r++) {
+          var baseRow = baseData[r];
+          var outRow = [];
+          var diagRow = [];
+
+          for (var h = 0; h < exportHeaders.length; h++) {
+            var header = exportHeaders[h];
+            var val = '';
+
+            if (header.isConditional) {
+              var id = header.id, type = document.getElementById('condType_' + id).value;
+              if (type === 'fixed') { val = document.getElementById('condValue_' + id) ? document.getElementById('condValue_' + id).value : ''; }
+              else if (type === 'formula') {
+                var fc1 = document.getElementById('condFormulaCol1_' + id).value.split('_'); var ci = +fc1[0] || 0; var co = +fc1[1] || 0;
+                var src1 = getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, ci, co).value;
+                var num1 = parseFloat(src1); var op = document.getElementById('condFormulaOp_' + id).value || '*';
+                var fc2 = document.getElementById('condFormulaCol2_' + id).value;
+                var fval = fc2 ? getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, +fc2.split('_')[0] || 0, +fc2.split('_')[1] || 0).value : document.getElementById('condFormulaValue_' + id).value || 1;
+                var num2 = parseFloat(fval);
+                if (!isNaN(num1) && !isNaN(num2)) { if (op === '*') val = num1 * num2; else if (op === '/') val = num1 / num2; else if (op === '+') val = num1 + num2; else if (op === '-') val = num1 - num2; else if (op === '%') val = num1 % num2; else if (op === '^') val = Math.pow(num1, num2); }
+              } else if (type === 'ifThen') {
+                var condOk = evaluateCondition(id, baseRow, baseIndex, matchCols);
+                var thenCol = document.getElementById('condThenCol_' + id).value;
+                var elseCol = document.getElementById('condElseCol_' + id).value;
+                if (condOk) { val = thenCol ? getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, +thenCol.split('_')[0], +thenCol.split('_')[1]).value : document.getElementById('condThen_' + id).value; }
+                else { val = elseCol ? getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, +elseCol.split('_')[0], +elseCol.split('_')[1]).value : document.getElementById('condElse_' + id).value; }
+              } else if (type === 'concat') {
+                var colsStr = document.getElementById('condConcatCols_' + id).value || '';
+                var sep = document.getElementById('condConcatSep_' + id).value || ' ';
+                var cols = colsStr.split(',').map(function (s) { return s.trim().split('_').map(Number); });
+                val = cols.map(function (c) { return getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, c[0], c[1]).value; }).join(sep);
+              } else if (type === 'substring') {
+                var fc = document.getElementById('condSubstrCol_' + id).value.split('_'); var ci = +fc[0] || 0; var co = +fc[1] || 0;
+                var src = getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, ci, co).value;
+                var start = +document.getElementById('condSubstrStart_' + id).value || 0;
+                var len = +document.getElementById('condSubstrLen_' + id).value || 10;
+                val = String(src).substring(start, len < 0 ? undefined : start + len);
+              }
+              outRow.push(val);
+              diagRow.push(''); // Conditional columns don't have diagnosis in this context
+            } else {
+              const result = getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, header.csvIndex, header.colIndex);
+              outRow.push(result.value);
+              diagRow.push(result.diagnosis);
             }
-            html += '<td>' + diagHtml + '</td>';
-          } else {
-            html += '<td>' + (val == null ? '' : val) + '</td>';
           }
+
+          // Append diagnosis statuses to the row
+          for (const diagStatus of diagRow) {
+            outRow.push(diagStatus);
+          }
+
+          html += '<tr>';
+          for (var cc = 0; cc < outRow.length; cc++) {
+            const val = outRow[cc];
+            if (cc >= exportHeaders.length) { // This is a diagnosis column
+              let diagHtml = '-';
+              if (val.includes('date-ok')) {
+                diagHtml = '<span class="diagnosis-cell diag-date-ok">Datum OK</span>';
+              } else if (val.includes('date-fail')) {
+                const rawVal = val.split('(')[1].slice(0, -1);
+                diagHtml = '<span class="diagnosis-cell diag-date-fail">Datum FALSCH: ' + rawVal + '</span>';
+              } else if (val.includes('number-ok')) {
+                diagHtml = '<span class="diagnosis-cell diag-number-ok">Zahl OK</span>';
+              } else if (val.includes('number-fail')) {
+                const rawVal = val.split('(')[1].slice(0, -1);
+                diagHtml = '<span class="diagnosis-cell diag-number-fail">Zahl FALSCH: ' + rawVal + '</span>';
+              }
+              html += '<td>' + diagHtml + '</td>';
+            } else {
+              html += '<td>' + (val == null ? '' : val) + '</td>';
+            }
+          }
+          html += '</tr>';
         }
-        html += '</tr>';
-      }
-      html += '</tbody></table></div>';
-      html += '<span class="row-count">' + baseData.length + ' Zeilen zur Exportierung (Vorschau: ' + exportData.length + ' Zeilen)</span>';
-      document.getElementById('exportPreview').innerHTML = html;
+        html += '</tbody></table></div>';
+
+        document.getElementById('exportPreview').innerHTML = html;
+        hideLoading();
+      }, 10);
     }
 
     function exportCSV() {
-      var baseIndex = +document.getElementById('baseCSV').value;
-      var matchCols = []; for (var i = 0; i < csvData.length; i++) { var el = document.getElementById('matchCol' + i); matchCols.push(el ? +el.value : 0); }
-      var base = csvData[baseIndex]; var baseData = (base.parsedData || []).slice((base.headerRow || 0) + 1);
-      var headers = [], meta = [], rows = [];
-      for (var i = 0; i < conditionalColumnCounter; i++) {
-        if (!document.getElementById('condCol_' + i)) continue;
-        var nm = document.getElementById('condName_' + i).value || ('cond_' + (i + 1));
-        headers.push(nm); meta.push({ isConditional: true, id: i, name: nm });
-      }
-      for (var ci = 0; ci < csvData.length; ci++) {
-        var hs = (csvData[ci].parsedData && csvData[ci].parsedData[csvData[ci].headerRow]) ? csvData[ci].parsedData[csvData[ci].headerRow] : [];
-        for (var co = 0; co < hs.length; co++) {
-          var cb = document.getElementById('col_' + ci + '_' + co);
-          if (cb && cb.checked) { headers.push(hs[co] || ('Spalte_' + (co + 1))); meta.push({ isConditional: false, csvIndex: ci, colIndex: co }); }
-        }
-      }
-      for (var r = 0; r < baseData.length; r++) {
-        var baseRow = baseData[r]; var row = [];
-        for (var h = 0; h < meta.length; h++) {
-          var m = meta[h];
-          if (m.isConditional) {
-            var id = m.id, type = document.getElementById('condType_' + id).value, v = '';
-            if (type === 'fixed') { v = document.getElementById('condValue_' + id).value || ''; }
-            else if (type === 'formula') {
-              var fc1 = document.getElementById('condFormulaCol1_' + id).value.split('_'); var ci = +fc1[0] || 0; var co = +fc1[1] || 0;
-              var src1 = getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, ci, co).value;
-              var num1 = parseFloat(src1); var op = document.getElementById('condFormulaOp_' + id).value || '*';
-              var fc2 = document.getElementById('condFormulaCol2_' + id).value;
-              var fval = fc2 ? getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, +fc2.split('_')[0] || 0, +fc2.split('_')[1] || 0).value : document.getElementById('condFormulaValue_' + id).value || 1;
-              var num2 = parseFloat(fval);
-              if (!isNaN(num1) && !isNaN(num2)) { if (op === '*') v = num1 * num2; else if (op === '/') v = num1 / num2; else if (op === '+') v = num1 + num2; else if (op === '-') v = num1 - num2; else if (op === '%') v = num1 % num2; else if (op === '^') v = Math.pow(num1, num2); }
-            } else if (type === 'ifThen') {
-              var condOk = evaluateCondition(id, baseRow, baseIndex, matchCols);
-              var thenCol = document.getElementById('condThenCol_' + id).value;
-              var elseCol = document.getElementById('condElseCol_' + id).value;
-              if (condOk) { v = thenCol ? getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, +thenCol.split('_')[0], +thenCol.split('_')[1]).value : document.getElementById('condThen_' + id).value; }
-              else { v = elseCol ? getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, +elseCol.split('_')[0], +elseCol.split('_')[1]).value : document.getElementById('condElse_' + id).value; }
-            } else if (type === 'concat') {
-              var colsStr = document.getElementById('condConcatCols_' + id).value || '';
-              var sep = document.getElementById('condConcatSep_' + id).value || ' ';
-              var cols = colsStr.split(',').map(function (s) { return s.trim().split('_').map(Number); });
-              v = cols.map(function (c) { return getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, c[0], c[1]).value; }).join(sep);
-            } else if (type === 'substring') {
-              var fc = document.getElementById('condSubstrCol_' + id).value.split('_'); var ci = +fc[0] || 0; var co = +fc[1] || 0;
-              var src = getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, ci, co).value;
-              var start = +document.getElementById('condSubstrStart_' + id).value || 0;
-              var len = +document.getElementById('condSubstrLen_' + id).value || 10;
-              v = String(src).substring(start, len < 0 ? undefined : start + len);
-            }
-            row.push(v);
-          } else {
-            row.push(getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, m.csvIndex, m.colIndex).value);
-          }
-        }
-        rows.push(row);
-      }
-      var csv = [headers].concat(rows).map(function (r) { return r.map(function (c) { var s = String(c == null ? '' : c); return (s.indexOf(';') > -1 || s.indexOf('"') > -1) ? ('"' + s.replace(/"/g, '""') + '"') : s; }).join(';'); }).join('\n');
-      var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' }); var a = document.createElement('a'); var url = URL.createObjectURL(blob);
-      a.href = url; a.download = 'merged_export_' + Date.now() + '.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      showAlert('CSV erfolgreich exportiert!', 'success');
-    }
+      showLoading('Exportiere CSV...');
+      setTimeout(function () {
+        matchResultCache.clear(); // Clear cache before export
+        try {
+          var baseIndex = +document.getElementById('baseCSV').value;
+          var matchCols = []; for (var i = 0; i < csvData.length; i++) { var el = document.getElementById('matchCol' + i); matchCols.push(el ? +el.value : 0); }
+          var base = csvData[baseIndex]; var baseData = (base.parsedData || []).slice((base.headerRow || 0) + 1);
 
+          var exportHeaders = [];
+          for (var i = 0; i < conditionalColumnCounter; i++) {
+            if (!document.getElementById('condCol_' + i)) continue;
+            var name = document.getElementById('condName_' + i) ? document.getElementById('condName_' + i).value : ('cond_' + (i + 1));
+            exportHeaders.push({ name: name, isConditional: true, id: i });
+          }
+          for (var ci = 0; ci < csvData.length; ci++) {
+            var headers = (csvData[ci].parsedData && csvData[ci].parsedData[csvData[ci].headerRow]) ? csvData[ci].parsedData[csvData[ci].headerRow] : [];
+            for (var colIdx = 0; colIdx < headers.length; colIdx++) {
+              var cb = document.getElementById('col_' + ci + '_' + colIdx);
+              if (cb && cb.checked) {
+                const name = headers[colIdx] || ('Spalte ' + (colIdx + 1));
+                exportHeaders.push({ name: name, csvIndex: ci, colIndex: colIdx });
+              }
+            }
+          }
+
+          var resultData = [];
+          // Header
+          resultData.push(exportHeaders.map(function (h) { return h.name; }));
+
+          // Rows
+          for (var r = 0; r < baseData.length; r++) {
+            var baseRow = baseData[r];
+            var outRow = [];
+            for (var h = 0; h < exportHeaders.length; h++) {
+              var header = exportHeaders[h];
+              var val = '';
+              if (header.isConditional) {
+                var id = header.id, type = document.getElementById('condType_' + id).value;
+                if (type === 'fixed') { val = document.getElementById('condValue_' + id) ? document.getElementById('condValue_' + id).value : ''; }
+                else if (type === 'formula') {
+                  var fc1 = document.getElementById('condFormulaCol1_' + id).value.split('_'); var ci = +fc1[0] || 0; var co = +fc1[1] || 0;
+                  var src1 = getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, ci, co).value;
+                  var num1 = parseFloat(src1); var op = document.getElementById('condFormulaOp_' + id).value || '*';
+                  var fc2 = document.getElementById('condFormulaCol2_' + id).value;
+                  var fval = fc2 ? getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, +fc2.split('_')[0] || 0, +fc2.split('_')[1] || 0).value : document.getElementById('condFormulaValue_' + id).value || 1;
+                  var num2 = parseFloat(fval);
+                  if (!isNaN(num1) && !isNaN(num2)) { if (op === '*') val = num1 * num2; else if (op === '/') val = num1 / num2; else if (op === '+') val = num1 + num2; else if (op === '-') val = num1 - num2; else if (op === '%') val = num1 % num2; else if (op === '^') val = Math.pow(num1, num2); }
+                } else if (type === 'ifThen') {
+                  var condOk = evaluateCondition(id, baseRow, baseIndex, matchCols);
+                  var thenCol = document.getElementById('condThenCol_' + id).value;
+                  var elseCol = document.getElementById('condElseCol_' + id).value;
+                  if (condOk) { val = thenCol ? getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, +thenCol.split('_')[0], +thenCol.split('_')[1]).value : document.getElementById('condThen_' + id).value; }
+                  else { val = elseCol ? getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, +elseCol.split('_')[0], +elseCol.split('_')[1]).value : document.getElementById('condElse_' + id).value; }
+                } else if (type === 'concat') {
+                  var colsStr = document.getElementById('condConcatCols_' + id).value || '';
+                  var sep = document.getElementById('condConcatSep_' + id).value || ' ';
+                  var cols = colsStr.split(',').map(function (s) { return s.trim().split('_').map(Number); });
+                  val = cols.map(function (c) { return getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, c[0], c[1]).value; }).join(sep);
+                } else if (type === 'substring') {
+                  var fc = document.getElementById('condSubstrCol_' + id).value.split('_'); var ci = +fc[0] || 0; var co = +fc[1] || 0;
+                  var src = getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, ci, co).value;
+                  var start = +document.getElementById('condSubstrStart_' + id).value || 0;
+                  var len = +document.getElementById('condSubstrLen_' + id).value || 10;
+                  val = String(src).substring(start, len < 0 ? undefined : start + len);
+                }
+                outRow.push(val);
+              } else {
+                outRow.push(getMatchedValueWithDiagnosis(baseRow, baseIndex, matchCols, header.csvIndex, header.colIndex).value);
+              }
+            }
+            resultData.push(outRow);
+          }
+
+          var csv = Papa.unparse(resultData, { delimiter: ';' });
+          var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a');
+          a.href = url;
+          a.download = 'export.csv';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          hideLoading();
+        } catch (err) {
+          showAlert('Fehler beim Export: ' + err.message, 'error');
+          hideLoading();
+        }
+      }, 10);
+    }
     function exportSQL() {
       showAlert('SQL-Export ist in Entwicklung. CSV ist bereit!', 'info');
     }
+
+    // === BEDINGUNGEN IMPORT/EXPORT ===
+    function serializeConditionalColumns() {
+      const columns = [];
+
+      for (let i = 0; i < conditionalColumnCounter; i++) {
+        const colEl = document.getElementById('condCol_' + i);
+        if (!colEl) continue;
+
+        const column = {
+          id: i,
+          name: document.getElementById('condName_' + i)?.value || '',
+          type: document.getElementById('condType_' + i)?.value || 'fixed',
+          config: {},
+          conditions: []
+        };
+
+        // Serialize config based on type
+        if (column.type === 'fixed') {
+          column.config.fixedValue = document.getElementById('condValue_' + i)?.value || '';
+        } else if (column.type === 'formula') {
+          column.config.col1 = document.getElementById('condFormulaCol1_' + i)?.value || '';
+          column.config.op = document.getElementById('condFormulaOp_' + i)?.value || '*';
+          column.config.col2 = document.getElementById('condFormulaCol2_' + i)?.value || '';
+          column.config.value = document.getElementById('condFormulaValue_' + i)?.value || '1';
+        } else if (column.type === 'ifThen') {
+          column.config.thenColumn = document.getElementById('condThenCol_' + i)?.value || '';
+          column.config.elseColumn = document.getElementById('condElseCol_' + i)?.value || '';
+          column.config.thenValue = document.getElementById('condThen_' + i)?.value || '';
+          column.config.elseValue = document.getElementById('condElse_' + i)?.value || '';
+        } else if (column.type === 'concat') {
+          column.config.columns = document.getElementById('condConcatCols_' + i)?.value || '';
+          column.config.separator = document.getElementById('condConcatSep_' + i)?.value || ' ';
+        } else if (column.type === 'substring') {
+          column.config.column = document.getElementById('condSubstrCol_' + i)?.value || '';
+          column.config.start = parseInt(document.getElementById('condSubstrStart_' + i)?.value || '0');
+          column.config.length = parseInt(document.getElementById('condSubstrLen_' + i)?.value || '10');
+        }
+
+        // Serialize conditions (only for ifThen type really, but structure allows it for others if needed)
+        const condContainer = document.getElementById('conditionsContainer_' + i);
+        if (condContainer) {
+          const condGroups = condContainer.querySelectorAll('.condition-group');
+          condGroups.forEach((group, idx) => {
+            const cond = {
+              column: document.getElementById('condIfCol_' + i + '_' + idx)?.value || '',
+              operator: document.getElementById('condIfOp_' + i + '_' + idx)?.value || '==',
+              value: document.getElementById('condIfValue_' + i + '_' + idx)?.value || '',
+              type: document.getElementById('condIfType_' + i + '_' + idx)?.value || 'text'
+            };
+
+            // Check for comparison column (if implemented in UI)
+            const cmpColEl = document.getElementById('condIfCol_' + i + '_' + idx + '_cmp');
+            if (cmpColEl && cmpColEl.value) {
+              cond.compareColumn = cmpColEl.value;
+            }
+
+            // Add logic operator for conditions after the first one
+            if (idx > 0) {
+              cond.logic = document.getElementById('condLogic_' + i + '_' + idx)?.value || 'AND';
+            }
+
+            column.conditions.push(cond);
+          });
+        }
+
+        columns.push(column);
+      }
+
+      return columns;
+    }
+
+    function deserializeConditionalColumns(columns) {
+      // Clear existing conditional columns
+      const container = document.getElementById('conditionalColumns');
+      container.innerHTML = '';
+      conditionalColumnCounter = 0;
+
+      // Recreate columns from data
+      columns.forEach(colData => {
+        addConditionalColumn();
+        const id = conditionalColumnCounter - 1;
+
+        // Set basic properties
+        if (document.getElementById('condName_' + id)) {
+          document.getElementById('condName_' + id).value = colData.name || '';
+        }
+        if (document.getElementById('condType_' + id)) {
+          document.getElementById('condType_' + id).value = colData.type || 'fixed';
+          updateConditionalType(id);
+        }
+
+        // Set config based on type
+        setTimeout(() => {
+          if (colData.type === 'fixed') {
+            const el = document.getElementById('condValue_' + id);
+            if (el) el.value = colData.config.fixedValue || '';
+          } else if (colData.type === 'formula') {
+            if (document.getElementById('condFormulaCol1_' + id)) document.getElementById('condFormulaCol1_' + id).value = colData.config.col1 || '';
+            if (document.getElementById('condFormulaOp_' + id)) document.getElementById('condFormulaOp_' + id).value = colData.config.op || '*';
+            if (document.getElementById('condFormulaCol2_' + id)) document.getElementById('condFormulaCol2_' + id).value = colData.config.col2 || '';
+            if (document.getElementById('condFormulaValue_' + id)) document.getElementById('condFormulaValue_' + id).value = colData.config.value || '1';
+          } else if (colData.type === 'ifThen') {
+            if (document.getElementById('condThenCol_' + id)) document.getElementById('condThenCol_' + id).value = colData.config.thenColumn || '';
+            if (document.getElementById('condElseCol_' + id)) document.getElementById('condElseCol_' + id).value = colData.config.elseColumn || '';
+            if (document.getElementById('condThen_' + id)) document.getElementById('condThen_' + id).value = colData.config.thenValue || '';
+            if (document.getElementById('condElse_' + id)) document.getElementById('condElse_' + id).value = colData.config.elseValue || '';
+          } else if (colData.type === 'concat') {
+            if (document.getElementById('condConcatCols_' + id)) document.getElementById('condConcatCols_' + id).value = colData.config.columns || '';
+            if (document.getElementById('condConcatSep_' + id)) document.getElementById('condConcatSep_' + id).value = colData.config.separator || ' ';
+          } else if (colData.type === 'substring') {
+            if (document.getElementById('condSubstrCol_' + id)) document.getElementById('condSubstrCol_' + id).value = colData.config.column || '';
+            if (document.getElementById('condSubstrStart_' + id)) document.getElementById('condSubstrStart_' + id).value = colData.config.start || 0;
+            if (document.getElementById('condSubstrLen_' + id)) document.getElementById('condSubstrLen_' + id).value = colData.config.length || 10;
+          }
+
+          // Recreate conditions
+          if (colData.conditions && colData.conditions.length > 0) {
+            colData.conditions.forEach((cond, idx) => {
+              if (idx === 0) {
+                // First condition might already exist, just set its values
+                const container = document.getElementById('conditionsContainer_' + id);
+                if (container && container.querySelectorAll('.condition-group').length === 0) {
+                  addCondition(id);
+                }
+              } else {
+                addCondition(id);
+              }
+
+              setTimeout(() => {
+                const colEl = document.getElementById('condIfCol_' + id + '_' + idx);
+                const opEl = document.getElementById('condIfOp_' + id + '_' + idx);
+                const typeEl = document.getElementById('condIfType_' + id + '_' + idx);
+
+                if (colEl) colEl.value = cond.column || '';
+                if (typeEl) {
+                  typeEl.value = cond.type || 'text';
+                  updateOperatorOptions(id, idx);
+                  updateConditionValueInput(id, idx);
+                }
+                if (opEl) opEl.value = cond.operator || '==';
+
+                // Set value after type is set
+                setTimeout(() => {
+                  const valueEl = document.getElementById('condIfValue_' + id + '_' + idx);
+                  if (valueEl) valueEl.value = cond.value || '';
+
+                  // Restore compareColumn if present
+                  if (cond.compareColumn) {
+                    const cmpColEl = document.getElementById('condIfCol_' + id + '_' + idx + '_cmp');
+                    if (cmpColEl) cmpColEl.value = cond.compareColumn;
+                  }
+                }, 50);
+
+                // Set logic if not first condition
+                if (idx > 0 && cond.logic) {
+                  const logicEl = document.getElementById('condLogic_' + id + '_' + idx);
+                  if (logicEl) logicEl.value = cond.logic;
+                }
+              }, 50 * idx);
+            });
+          }
+
+          updateExportPreview();
+        }, 100);
+      });
+    }
+
+    function exportConditions() {
+      const columns = serializeConditionalColumns();
+
+      if (columns.length === 0) {
+        showAlert('Keine bedingten Spalten zum Exportieren vorhanden.', 'warning');
+        return;
+      }
+
+      const exportData = {
+        version: '1.0',
+        exported: new Date().toISOString(),
+        conditionalColumns: columns
+      };
+
+      const jsonStr = JSON.stringify(exportData, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'bedingungen_' + Date.now() + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      showAlert('Bedingungen erfolgreich exportiert!', 'success');
+    }
+
+    function importConditions(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const data = JSON.parse(e.target.result);
+
+          // Validate structure
+          if (!data.conditionalColumns || !Array.isArray(data.conditionalColumns)) {
+            showAlert('Ungültiges Dateiformat. Bitte wähle eine gültige Bedingungen-Datei.', 'error');
+            return;
+          }
+
+          // Import the columns
+          deserializeConditionalColumns(data.conditionalColumns);
+          showAlert(`${data.conditionalColumns.length} bedingte Spalte(n) erfolgreich importiert!`, 'success');
+
+          // Clear file input for next import
+          event.target.value = '';
+        } catch (err) {
+          showAlert('Fehler beim Importieren: ' + err.message, 'error');
+          console.error(err);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // === PRESET MANAGEMENT ===
+    const PRESET_STORAGE_KEY = 'csv-matcher-presets';
+
+    function getAllPresets() {
+      try {
+        const data = localStorage.getItem(PRESET_STORAGE_KEY);
+        return data ? JSON.parse(data) : {};
+      } catch (err) {
+        console.error('Error loading presets:', err);
+        return {};
+      }
+    }
+
+    function savePreset(name, data) {
+      try {
+        const presets = getAllPresets();
+        presets[name] = {
+          version: '1.0',
+          saved: new Date().toISOString(),
+          conditionalColumns: data
+        };
+        localStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify(presets));
+        return true;
+      } catch (err) {
+        console.error('Error saving preset:', err);
+        return false;
+      }
+    }
+
+    function loadPreset(name) {
+      try {
+        const presets = getAllPresets();
+        return presets[name] || null;
+      } catch (err) {
+        console.error('Error loading preset:', err);
+        return null;
+      }
+    }
+
+    function deletePreset(name) {
+      try {
+        const presets = getAllPresets();
+        delete presets[name];
+        localStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify(presets));
+        return true;
+      } catch (err) {
+        console.error('Error deleting preset:', err);
+        return false;
+      }
+    }
+
+    function updatePresetDropdown() {
+      const selector = document.getElementById('presetSelector');
+      if (!selector) return;
+
+      const currentValue = selector.value;
+      const presets = getAllPresets();
+      const presetNames = Object.keys(presets).sort();
+
+      selector.innerHTML = '<option value="">-- Preset wählen --</option>';
+
+      presetNames.forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        if (name === currentValue) option.selected = true;
+        selector.appendChild(option);
+      });
+    }
+
+    function showSavePresetDialog() {
+      const columns = serializeConditionalColumns();
+
+      if (columns.length === 0) {
+        showAlert('Keine bedingten Spalten zum Speichern vorhanden.', 'warning');
+        return;
+      }
+
+      const modal = document.getElementById('savePresetModal');
+      const input = document.getElementById('presetNameInput');
+
+      input.value = '';
+      modal.classList.add('active');
+
+      // Focus input after a short delay to ensure modal is visible
+      setTimeout(() => input.focus(), 100);
+    }
+
+    function closeSavePresetDialog() {
+      const modal = document.getElementById('savePresetModal');
+      modal.classList.remove('active');
+    }
+
+    function savePresetWithName() {
+      const input = document.getElementById('presetNameInput');
+      const name = input.value.trim();
+
+      if (!name) {
+        showAlert('Bitte gib einen Namen für das Preset ein.', 'warning');
+        return;
+      }
+
+      const columns = serializeConditionalColumns();
+
+      if (columns.length === 0) {
+        showAlert('Keine bedingten Spalten zum Speichern vorhanden.', 'warning');
+        closeSavePresetDialog();
+        return;
+      }
+
+      // Check if preset already exists
+      const presets = getAllPresets();
+      if (presets[name]) {
+        if (!confirm(`Ein Preset mit dem Namen "${name}" existiert bereits. Überschreiben?`)) {
+          return;
+        }
+      }
+
+      if (savePreset(name, columns)) {
+        showAlert(`Preset "${name}" erfolgreich gespeichert!`, 'success');
+        updatePresetDropdown();
+        closeSavePresetDialog();
+      } else {
+        showAlert('Fehler beim Speichern des Presets.', 'error');
+      }
+    }
+
+    function loadPresetFromDropdown() {
+      const selector = document.getElementById('presetSelector');
+      const name = selector.value;
+
+      if (!name) return;
+
+      const preset = loadPreset(name);
+
+      if (!preset) {
+        showAlert('Preset konnte nicht geladen werden.', 'error');
+        return;
+      }
+
+      if (!preset.conditionalColumns || !Array.isArray(preset.conditionalColumns)) {
+        showAlert('Ungültiges Preset-Format.', 'error');
+        return;
+      }
+
+      // Confirm if there are existing conditions
+      const existingColumns = serializeConditionalColumns();
+      if (existingColumns.length > 0) {
+        if (!confirm('Vorhandene Bedingungen werden überschrieben. Fortfahren?')) {
+          selector.value = '';
+          return;
+        }
+      }
+
+      deserializeConditionalColumns(preset.conditionalColumns);
+      showAlert(`Preset "${name}" erfolgreich geladen!`, 'success');
+    }
+
+    function showManagePresetsDialog() {
+      const modal = document.getElementById('managePresetsModal');
+      modal.classList.add('active');
+      refreshPresetList();
+    }
+
+    function closeManagePresetsDialog() {
+      const modal = document.getElementById('managePresetsModal');
+      modal.classList.remove('active');
+    }
+
+    function refreshPresetList() {
+      const container = document.getElementById('presetListContainer');
+      const noPresetsMsg = document.getElementById('noPresetsMessage');
+      const presets = getAllPresets();
+      const presetNames = Object.keys(presets).sort();
+
+      container.innerHTML = '';
+
+      if (presetNames.length === 0) {
+        container.style.display = 'none';
+        noPresetsMsg.style.display = 'block';
+        return;
+      }
+
+      container.style.display = 'grid';
+      noPresetsMsg.style.display = 'none';
+
+      presetNames.forEach(name => {
+        const preset = presets[name];
+        const savedDate = new Date(preset.saved);
+        const formattedDate = savedDate.toLocaleDateString('de-DE', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+
+        const item = document.createElement('div');
+        item.className = 'preset-item';
+        item.innerHTML = `
+          <div class="preset-info">
+            <div class="preset-name">${escapeHtml(name)}</div>
+            <div class="preset-meta">
+              ${preset.conditionalColumns.length} Spalte(n) • Gespeichert: ${formattedDate}
+            </div>
+          </div>
+          <div class="preset-actions">
+            <button class="preset-btn load" onclick="loadPresetByName('${escapeHtml(name).replace(/'/g, "\\'")}')">Laden</button>
+            <button class="preset-btn delete" onclick="deletePresetByName('${escapeHtml(name).replace(/'/g, "\\'")}')">Löschen</button>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function loadPresetByName(name) {
+      const preset = loadPreset(name);
+
+      if (!preset) {
+        showAlert('Preset konnte nicht geladen werden.', 'error');
+        return;
+      }
+
+      // Confirm if there are existing conditions
+      const existingColumns = serializeConditionalColumns();
+      if (existingColumns.length > 0) {
+        if (!confirm('Vorhandene Bedingungen werden überschrieben. Fortfahren?')) {
+          return;
+        }
+      }
+
+      deserializeConditionalColumns(preset.conditionalColumns);
+      updatePresetDropdown();
+
+      // Set dropdown to loaded preset
+      const selector = document.getElementById('presetSelector');
+      if (selector) selector.value = name;
+
+      closeManagePresetsDialog();
+      showAlert(`Preset "${name}" erfolgreich geladen!`, 'success');
+    }
+
+    function deletePresetByName(name) {
+      if (!confirm(`Preset "${name}" wirklich löschen?`)) {
+        return;
+      }
+
+      if (deletePreset(name)) {
+        showAlert(`Preset "${name}" gelöscht.`, 'success');
+        refreshPresetList();
+        updatePresetDropdown();
+      } else {
+        showAlert('Fehler beim Löschen des Presets.', 'error');
+      }
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Initialize preset dropdown on page load
+    document.addEventListener('DOMContentLoaded', function () {
+      updatePresetDropdown();
+    });
+
 
     function toggleSourceType(i) {
       var type = document.getElementById('sourceType' + i).value;
@@ -2311,6 +3201,50 @@
       });
     });
   </script>
+
+  <!-- Preset Management Modals -->
+  <div id="savePresetModal" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3>Preset speichern</h3>
+        <button class="modal-close" onclick="closeSavePresetDialog()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="presetNameInput">Preset-Name:</label>
+          <input type="text" id="presetNameInput" placeholder="z.B. Meine Standard-Bedingungen"
+            onkeypress="if(event.key==='Enter') savePresetWithName()">
+        </div>
+        <p class="subtitle">Gib einen eindeutigen Namen für dieses Preset ein.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeSavePresetDialog()">Abbrechen</button>
+        <button class="btn btn-success" onclick="savePresetWithName()">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="managePresetsModal" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3>Presets verwalten</h3>
+        <button class="modal-close" onclick="closeManagePresetsDialog()">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="presetListContainer" class="preset-list">
+          <!-- Preset items will be populated here -->
+        </div>
+        <div id="noPresetsMessage" class="empty-state" style="display:none; padding:40px 20px;">
+          <div class="empty-state-icon">📋</div>
+          <div class="empty-state-text">Keine Presets gespeichert</div>
+          <div class="empty-state-subtext">Erstelle dein erstes Preset mit dem "Speichern" Button</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeManagePresetsDialog()">Schließen</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Service Worker Registration -->
   <script>
